@@ -1,0 +1,49 @@
+# Common Lisp artifacts
+*.fasl
+*.lib
+*.slab
+*.x86f
+*.ufsl
+*.heap
+.image
+
+# SBCL
+core
+sbcl.core
+
+# CCL
+ccl.image
+
+# Lispworks
+*.lw*
+
+# Allegro CL
+*.fas
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Build artifacts
+build/
+dist/
+
+# Dependencies (Quicklisp)
+quicklisp/
+
+# Test artifacts
+*.coverage

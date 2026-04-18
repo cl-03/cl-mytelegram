@@ -1,0 +1,35 @@
+# Common Lisp artifacts
+*.fasl
+*.lib
+*.dfsl
+*.cache
+*.core
+dumpbot.log
+
+# Quicklisp
+quicklisp/
+
+# ASDF
+.asd-cache
+
+# Emacs
+*~
+\#*\#
+.*.swp
+.*.swo
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Logs
+*.log
+
+# Build
+build/
+dist/
+
+# Environment
+.env
+.env.local
