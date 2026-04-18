@@ -41,16 +41,17 @@ Implemented:
 - [x] **Secret Chats** - End-to-end encryption with DH key exchange, AES-256 IGE, self-destruct
 - [x] **Local Database** - SQLite cache for users, chats, messages with search and pagination
 - [x] **CLOG GUI** - Web-based graphical interface with dark theme, chat list, message view
+- [x] **Group/Channel Admin** - Administrator management, member ban/unban, invite links
+- [x] **Media Viewer** - Full-screen viewer for photos, videos, documents, audio files
 
 In Progress:
 - [ ] Integration tests with real Telegram servers
-- [ ] Group chat and channel support
-- [ ] Media viewer in GUI
+- [ ] Voice/video call infrastructure
 
 Planned:
-- [ ] Voice and video call support
 - [ ] Sticker and emoji pack management
-- [ ] Channel and broadcast support
+- [ ] Channel broadcast features
+- [ ] Message reactions and comments
 
 ## Requirements
 
