@@ -13,4 +13,12 @@
    #:run-ui-tests
    #:run-integration-tests
    #:run-integration-tests-with-creds
-   #:run-proxy-tests))
+   #:run-proxy-tests
+   ;; Live tests
+   #:run-live-tests
+   #:run-single-live-test
+   #:*live-test-api-id*
+   #:*live-test-api-hash*
+   #:*live-test-phone*
+   #:*live-test-dc-id*
+   #:*live-test-code*))

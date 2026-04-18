@@ -75,7 +75,7 @@
 ;; Test system
 (asdf:defsystem #:cl-telegram/tests
   :description "Tests for cl-telegram"
-  :depends-on (:cl-telegram :fiveam)
+  :depends-on (:cl-telegram :fiveam :cl-ppcre)
   :pathname "tests/"
   :components ((:file "package")
                (:file "crypto-tests")
@@ -85,7 +85,8 @@
                (:file "proxy-tests")
                (:file "api-tests")
                (:file "ui-tests")
-               (:file "integration-tests")))
+               (:file "integration-tests")
+               (:file "live-telegram-tests")))
 
 ;; Documentation system
 (asdf:defsystem #:cl-telegram/docs

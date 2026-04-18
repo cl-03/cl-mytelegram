@@ -95,6 +95,41 @@ $ sbcl --load quicklisp-install.lisp
 (run-demo-cli)
 ```
 
+### Running Tests
+
+```lisp
+;; Load test system
+(asdf:load-system :cl-telegram/tests)
+
+;; Run all tests
+(cl-telegram/tests:run-all-tests)
+
+;; Run specific test suite
+(fiveam:run! 'cl-telegram/tests::crypto-tests)
+(fiveam:run! 'cl-telegram/tests::integration-tests)
+
+;; Run live tests (requires real credentials)
+;; First set environment variables:
+;;   export TELEGRAM_API_ID=your_api_id
+;;   export TELEGRAM_API_HASH=your_api_hash
+;;   export TELEGRAM_TEST_PHONE=+1234567890
+(cl-telegram/tests:run-live-tests)
+```
+
+Or use the shell script:
+
+```bash
+# Copy and configure .env
+cp .env.example .env
+# Edit .env with your credentials
+
+# Run all live tests
+./run-live-tests.sh
+
+# Run specific test
+./run-live-tests.sh test-connect-to-dc1
+```
+
 ### Authentication API
 
 ```lisp
