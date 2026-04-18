@@ -21,4 +21,6 @@
    #:*live-test-api-hash*
    #:*live-test-phone*
    #:*live-test-dc-id*
-   #:*live-test-code*))
+   #:*live-test-code*
+   ;; Update handler tests
+   #:run-update-handler-tests))

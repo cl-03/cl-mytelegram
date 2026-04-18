@@ -97,6 +97,17 @@
    #:start-update-loop
    #:stop-update-loop
 
+   ;; Update Handler
+   #:make-update-handler
+   #:update-handler
+   #:register-update-handler
+   #:unregister-update-handler
+   #:clear-update-handlers
+   #:dispatch-update
+   #:process-update-object
+   #:update-stats
+   #:with-update-handler
+
    ;; Bot API - Configuration
    #:make-bot
    #:bot-config
