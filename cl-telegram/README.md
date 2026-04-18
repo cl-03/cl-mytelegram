@@ -4,7 +4,7 @@ A pure Common Lisp Telegram client implementation using MTProto 2.0 protocol.
 
 ## Status
 
-**Beta** - Core infrastructure complete. API layer implemented with Messages, Chats, and Users APIs. CLI client functional.
+**Beta v0.7.0** - Core features complete: Encryption, Database Cache, Secret Chats, GUI.
 
 ## Features
 
@@ -36,16 +36,21 @@ Implemented:
 - [x] **CDN Integration** - Configurable CDN for file downloads
 - [x] **File Transfer** - Send/download photos, documents, audio, video with progress callbacks
 - [x] **Proxy Support** - SOCKS5 and HTTP CONNECT proxy with authentication
-- [x] **Integration Tests** - 20+ end-to-end tests
+- [x] **Update Handler** - Real-time updates for messages, chats, users, typing indicators
+- [x] **Bot API** - Complete bot support with command handlers, inline queries, callbacks
+- [x] **Secret Chats** - End-to-end encryption with DH key exchange, AES-256 IGE, self-destruct
+- [x] **Local Database** - SQLite cache for users, chats, messages with search and pagination
+- [x] **CLOG GUI** - Web-based graphical interface with dark theme, chat list, message view
 
 In Progress:
 - [ ] Integration tests with real Telegram servers
 - [ ] Group chat and channel support
+- [ ] Media viewer in GUI
 
 Planned:
-- [ ] Secret chats (end-to-end encryption)
-- [ ] Bot API support
-- [ ] GUI client (CLOG-based)
+- [ ] Voice and video call support
+- [ ] Sticker and emoji pack management
+- [ ] Channel and broadcast support
 
 ## Requirements
 
