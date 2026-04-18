@@ -95,4 +95,58 @@
    #:set-update-handler
    #:remove-update-handler
    #:start-update-loop
-   #:stop-update-loop))
+   #:stop-update-loop
+
+   ;; Bot API - Configuration
+   #:make-bot
+   #:bot-config
+   #:make-bot-config
+   #:bot-config-token
+   #:bot-config-api-url
+   #:bot-config-timeout
+   #:bot-config-use-test-environment
+
+   ;; Bot API - Core
+   #:bot-request
+   #:get-me
+   #:get-my-name
+   #:get-my-description
+   #:get-my-short-description
+
+   ;; Bot API - Sending Messages
+   #:bot-send-message
+   #:bot-send-photo
+   #:bot-send-document
+   #:bot-send-sticker
+   #:bot-send-location
+   #:bot-send-chat-action
+   #:bot-edit-message-text
+   #:bot-delete-message
+
+   ;; Bot API - Updates
+   #:get-updates
+   #:set-webhook
+   #:delete-webhook
+   #:get-webhook-info
+
+   ;; Bot API - Chat Management
+   #:bot-get-chat
+   #:bot-get-chat-member
+   #:bot-get-chat-administrators
+   #:bot-ban-chat-member
+   #:bot-unban-chat-member
+   #:bot-restrict-chat-member
+
+   ;; Bot API - Handlers
+   #:make-bot-handler
+   #:bot-handler
+   #:defcommand
+   #:register-command
+   #:unregister-command
+   #:register-message-handler
+   #:process-update
+   #:start-polling
+   #:stop-polling
+   #:setup-basic-commands
+   #:register-inline-handler
+   #:answer-inline-query))
