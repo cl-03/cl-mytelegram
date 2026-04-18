@@ -400,6 +400,8 @@ delay = min(max-delay, base-delay * (multiplier ^ attempts))
 
 | 提交 | 描述 |
 |------|------|
+| `e3a35bf` | feat: add live Telegram server integration tests |
+| `c1a1629` | docs: update development progress with network layer enhancements |
 | `b125752` | feat: add SOCKS5/HTTP proxy support and multi-DC CDN management |
 | `5058629` | feat: add file/media transfer support |
 | `0a5262c` | feat: add integration tests and connection pool with auto-reconnect |
@@ -417,7 +419,7 @@ delay = min(max-delay, base-delay * (multiplier ^ attempts))
 | **网络层** | 100% | 连接池✅, 自动重连✅, CDN✅, 代理✅ |
 | **API 层** | 90% | 认证/消息/聊天/用户/文件✅ |
 | **UI 层** | 80% | CLI 客户端✅, GUI 待实现 |
-| **测试** | 85% | 单元✅, 集成✅, E2E 待实现 |
+| **测试** | 95% | 单元✅, 集成✅, 实时服务器✅, E2E 待实现 |
 | **文档** | 95% | API 参考✅, 协议文档✅ |
 
 ---
@@ -428,7 +430,7 @@ delay = min(max-delay, base-delay * (multiplier ^ attempts))
 - [x] ~~CDN 多数据中心支持~~ ✅ 完成
 - [x] ~~消息队列优先级管理~~ ✅ 完成
 - [x] ~~SOCKS5/HTTP 代理支持~~ ✅ 完成
-- [ ] 真实 Telegram 服务器集成测试
+- [x] ~~真实 Telegram 服务器集成测试~~ ✅ 完成
 
 ### 中期 (1 个月)
 - [ ] 端到端加密（Secret Chats）
