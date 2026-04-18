@@ -67,4 +67,64 @@
 
    ;; Macros
    #:with-rpc-call
-   #:rpc-handler-case))
+   #:rpc-handler-case
+
+   ;; Proxy
+   #:proxy-config
+   #:make-proxy-config
+   #:proxy-config-type
+   #:proxy-config-host
+   #:proxy-config-port
+   #:proxy-config-username
+   #:proxy-config-password
+   #:proxy-config-use-dns
+   #:proxy-config-timeout
+   #:*global-proxy-config*
+   #:configure-proxy
+   #:reset-proxy-config
+   #:proxy-enabled-p
+   #:connect-through-proxy
+   #:async-connect-through-proxy
+   #:detect-system-proxy
+   #:use-system-proxy
+   #:get-proxy-info
+   #:with-proxy-connection
+
+   ;; CDN / DC Manager
+   #:dc-manager
+   #:make-dc-manager
+   #:get-dc-connection
+   #:get-current-connection
+   #:select-best-dc
+   #:switch-dc
+   #:measure-dc-latency
+   #:measure-all-dc-latencies
+   #:get-dc-info
+   #:dc-manager-stats
+   #:migrate-to-dc
+   #:export-auth
+   #:import-auth
+   #:dc-id-from-phone
+
+   ;; CDN Config
+   #:cdn-config
+   #:make-cdn-config
+   #:*cdn-config*
+   #:configure-cdn
+   #:cdn-config-enabled
+   #:cdn-config-base-url
+   #:cdn-config-fallback-dcs
+   #:cdn-config-max-concurrent-downloads
+   #:cdn-config-chunk-size
+
+   ;; Message Queue
+   #:message-queue
+   #:make-message-queue
+   #:enqueue-message
+   #:dequeue-message
+   #:queue-length
+   #:queue-stats
+   #:process-queue
+   #:*global-message-queue*
+   #:init-global-queue
+   #:enqueue-rpc-request))

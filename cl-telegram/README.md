@@ -29,10 +29,17 @@ Implemented:
 - [x] **Chats API** - get-chats, get-chat, create-private-chat, send-chat-action, chat management
 - [x] **Users API** - get-me, get-user, search-users, contacts management, block/unblock
 - [x] **CLI Client** - Interactive command-line interface with authentication
+- [x] **Connection Pool** - Thread-safe connection reuse with health monitoring
+- [x] **Auto Reconnect** - Exponential backoff reconnection manager
+- [x] **Message Queue** - Priority-based message scheduling
+- [x] **Multi-DC Support** - Datacenter selection, latency measurement, DC migration
+- [x] **CDN Integration** - Configurable CDN for file downloads
+- [x] **File Transfer** - Send/download photos, documents, audio, video with progress callbacks
+- [x] **Proxy Support** - SOCKS5 and HTTP CONNECT proxy with authentication
+- [x] **Integration Tests** - 20+ end-to-end tests
 
 In Progress:
 - [ ] Integration tests with real Telegram servers
-- [ ] File/media transfer support
 - [ ] Group chat and channel support
 
 Planned:
@@ -176,6 +183,74 @@ $ sbcl --load quicklisp-install.lisp
 (get-user-profile-photos 123)
 ```
 
+### Proxy Configuration
+
+```lisp
+;; Configure SOCKS5 proxy
+(configure-proxy :type :socks5
+                 :host "127.0.0.1"
+                 :port 1080)
+
+;; Configure HTTP proxy with authentication
+(configure-proxy :type :http
+                 :host "proxy.example.com"
+                 :port 8080
+                 :username "user"
+                 :password "pass")
+
+;; Auto-detect system proxy from environment
+(use-system-proxy)
+
+;; Check proxy status
+(get-proxy-info)
+;; => (:ENABLED T :TYPE :SOCKS5 :HOST "127.0.0.1" :PORT 1080 ...)
+
+;; Disable proxy
+(reset-proxy-config)
+```
+
+### Connection Pool
+
+```lisp
+;; Get connection from pool (reuses existing)
+(let ((conn (get-connection-from-pool "149.154.167.51" 443)))
+  ;; Use connection
+  (rpc-call conn request)
+  ;; Return to pool
+  (return-connection-to-pool conn))
+
+;; Pool statistics
+(pool-stats)
+;; => (:TOTAL 5 :HEALTHY 3 :UNHEALTHY 1 :RECONNECTING 1)
+
+;; Cleanup old connections
+(cleanup-pool :max-age 3600 :idle-timeout 300)
+```
+
+### Multi-DC Support
+
+```lisp
+;; Create DC manager
+(let ((dc-mgr (make-dc-manager :test-mode nil)))
+  ;; Measure latencies to all DCs
+  (measure-all-dc-latencies dc-mgr)
+  
+  ;; Get best DC connection (auto-selects lowest latency)
+  (let ((conn (get-current-connection dc-mgr)))
+    ;; Use connection...
+    ))
+
+;; Switch to specific DC
+(switch-dc dc-mgr 2)  ; Switch to DC 2 (Amsterdam)
+
+;; Migrate session to new DC
+(migrate-to-dc dc-mgr 3)  ; Migrate to DC 3 (Singapore)
+
+;; Suggest DC from phone number
+(dc-id-from-phone "+31612345678")  ; => 2 (Europe)
+(dc-id-from-phone "+12125551234")  ; => 5 (USA)
+```
+
 ### TDLib Compatibility
 
 ```lisp
@@ -237,17 +312,22 @@ cl-telegram/
 │   ├── network/
 │   │   ├── tcp-client.lisp  ; TCP client
 │   │   ├── connection.lisp  ; Connection management
-│   │   └── rpc.lisp         ; RPC calls
+│   │   ├── rpc.lisp         ; RPC calls & message queue
+│   │   ├── proxy.lisp       ; SOCKS5/HTTP proxy support
+│   │   └── cdn.lisp         ; CDN & datacenter management
 │   ├── api/
 │   │   ├── auth-api.lisp    ; Authentication API
 │   │   ├── messages-api.lisp; Message API
-│   │   └── chats-api.lisp   ; Chat API
+│   │   ├── chats-api.lisp   ; Chat API
+│   │   └── users-api.lisp   ; Users API
 │   └── ui/
 │       └── cli-client.lisp  ; CLI interface
 └── tests/
     ├── crypto-tests.lisp
     ├── tl-tests.lisp
-    └── mtproto-tests.lisp
+    ├── mtproto-tests.lisp
+    ├── proxy-tests.lisp
+    └── integration-tests.lisp
 ```
 
 ## Protocol References

@@ -2,6 +2,202 @@
 
 (in-package #:cl-telegram/network)
 
+;;; ### Message Queue
+
+(defstruct message-queue-item
+  "Item in message queue"
+  (request nil :type (or null simple-array))
+  (priority 0 :type integer)
+  (created-at 0 :type integer)
+  (callback nil :type (or null function))
+  (promise (cons nil nil) :type cons)
+  (retry-count 0 :type integer)
+  (max-retries 3 :type integer))
+
+(defclass message-queue ()
+  ((queue :initform (make-array 100 :adjustable t :fill-pointer 0)
+          :accessor queue-items
+          :documentation "Priority queue of messages")
+   (lock :initform (bt:make-lock "message-queue")
+         :accessor queue-lock
+         :documentation "Lock for thread-safe access")
+   (max-size :initarg :max-size :initform 1000
+             :accessor queue-max-size
+             :documentation "Maximum queue size")
+   (processing-p :initform nil :accessor queue-processing-p
+                 :documentation "Whether queue is being processed"))
+  (:documentation "Priority message queue for RPC requests"))
+
+(defun make-message-queue (&key (max-size 1000))
+  "Create a new message queue.
+
+   Args:
+     max-size: Maximum queue size (default 1000)
+
+   Returns:
+     Message queue instance"
+  (make-instance 'message-queue :max-size max-size))
+
+(defun enqueue-message (queue request &key (priority 0) callback)
+  "Add a message to the queue.
+
+   Args:
+     queue: Message queue instance
+     request: Serialized TL request
+     priority: Priority (higher = more urgent, default 0)
+     callback: Optional callback function
+
+   Returns:
+     Promise cons cell (value . done-p)"
+  (bt:with-lock-held ((queue-lock queue))
+    (if (>= (length (queue-items queue)) (queue-max-size queue))
+        (error "Message queue full")
+        (let ((item (make-message-queue-item
+                     :request request
+                     :priority priority
+                     :created-at (get-universal-time)
+                     :callback callback)))
+          (vector-push-extend item (queue-items queue))
+          ;; Sort by priority (descending)
+          (sort (queue-items queue) #'> :key #'message-queue-item-priority)
+          (item-promise item)))))
+
+(defun dequeue-message (queue)
+  "Remove and return the highest priority message.
+
+   Args:
+     queue: Message queue instance
+
+   Returns:
+     Message queue item or nil"
+  (bt:with-lock-held ((queue-lock queue))
+    (if (> (length (queue-items queue)) 0)
+        (aref (queue-items queue) 0)
+        nil)))
+
+(defun remove-message (queue index)
+  "Remove a message at specific index.
+
+   Args:
+     queue: Message queue instance
+     index: Index to remove
+
+   Returns:
+     Removed item or nil"
+  (bt:with-lock-held ((queue-lock queue))
+    (when (and (>= index 0)
+               (< index (length (queue-items queue))))
+      (let ((item (aref (queue-items queue) index)))
+        (delete index (queue-items queue))
+        item))))
+
+(defun queue-length (queue)
+  "Get current queue length."
+  (bt:with-lock-held ((queue-lock queue))
+    (length (queue-items queue))))
+
+(defun queue-stats (queue)
+  "Get queue statistics.
+
+   Returns:
+     plist with queue stats"
+  (bt:with-lock-held ((queue-lock queue))
+    (let ((items (queue-items queue))
+          (total (length items))
+          (high-priority 0)
+          (medium-priority 0)
+          (low-priority 0)
+          (oldest-age 0)
+          (now (get-universal-time)))
+      (loop for item across items do
+        (let ((priority (message-queue-item-priority item))
+              (age (- now (message-queue-item-created-at item))))
+          (cond
+            ((>= priority 10) (incf high-priority))
+            ((>= priority 1) (incf medium-priority))
+            (t (incf low-priority)))
+          (when (> age oldest-age)
+            (setf oldest-age age))))
+      (list :total total
+            :high-priority high-priority
+            :medium-priority medium-priority
+            :low-priority low-priority
+            :oldest-message-age-seconds oldest-age))))
+
+(defun process-queue (conn queue &key (batch-size 10) timeout)
+  "Process messages in the queue.
+
+   Args:
+     conn: Connection instance
+     queue: Message queue instance
+     batch-size: Number of messages to process in batch (default 10)
+     timeout: Timeout per message in milliseconds
+
+   Returns:
+     Number of messages processed"
+  (setf (queue-processing-p queue) t)
+  (let ((processed 0)
+        (batch nil))
+    ;; Collect batch
+    (bt:with-lock-held ((queue-lock queue))
+      (loop for i from 0 below (min batch-size (length (queue-items queue)))
+            for item = (aref (queue-items queue) i)
+            do (push item batch)))
+    ;; Process batch
+    (dolist (item (nreverse batch))
+      (handler-case
+          (let* ((request (message-queue-item-request item))
+                 (promise (message-queue-item-promise item))
+                 (result (rpc-call conn request :timeout (or timeout 30000))))
+            ;; Set result
+            (setf (car promise) result
+                  (cdr promise) t)
+            ;; Call callback if provided
+            (when (message-queue-item-callback item)
+              (funcall (message-queue-item-callback item) result))
+            (incf processed)
+            ;; Remove from queue
+            (bt:with-lock-held ((queue-lock queue))
+              (delete item (queue-items queue))))
+        (error (e)
+          ;; Increment retry count
+          (incf (message-queue-item-retry-count item))
+          (when (>= (message-queue-item-retry-count item)
+                    (message-queue-item-max-retries item))
+            ;; Max retries reached, remove from queue
+            (setf (cdr promise) t
+                  (car promise) (list :error :max-retries (format nil "~A" e)))
+            (bt:with-lock-held ((queue-lock queue))
+              (delete item (queue-items queue)))))))
+    (setf (queue-processing-p queue) nil)
+    processed))
+
+(defvar *global-message-queue* nil
+  "Global message queue instance")
+
+(defun init-global-queue (&key (max-size 1000))
+  "Initialize global message queue.
+
+   Args:
+     max-size: Maximum queue size"
+  (setf *global-message-queue* (make-message-queue :max-size max-size)))
+
+(defun enqueue-rpc-request (request &key (priority 0) callback)
+  "Add RPC request to global queue.
+
+   Args:
+     request: Serialized TL request
+     priority: Priority (higher = more urgent)
+     callback: Optional callback
+
+   Returns:
+     Promise cons cell"
+  (unless *global-message-queue*
+    (init-global-queue))
+  (enqueue-message *global-message-queue* request
+                   :priority priority
+                   :callback callback))
+
 ;;; ### RPC Request Invocation
 
 (defun rpc-call (conn request &key timeout)

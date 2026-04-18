@@ -12,4 +12,5 @@
    #:run-api-tests
    #:run-ui-tests
    #:run-integration-tests
-   #:run-integration-tests-with-creds))
+   #:run-integration-tests-with-creds
+   #:run-proxy-tests))

@@ -300,18 +300,21 @@
    (pending-requests :initform (make-hash-table) :accessor conn-pending-requests
                      :documentation "Pending RPC requests by msg-id")
    (event-handlers :initform nil :accessor conn-event-handlers
-                   :documentation "List of event handler functions"))
+                   :documentation "List of event handler functions")
+   (proxy-config :initarg :proxy-config :initform nil :accessor connection-proxy-config
+                 :documentation "Proxy configuration for this connection"))
   (:documentation "MTProto connection with state management"))
 
 ;;; ### Connection Creation
 
-(defun make-connection (&key host (port 443) auth-key)
+(defun make-connection (&key host (port 443) auth-key proxy-config)
   "Create a new MTProto connection.
 
    Args:
      host: Telegram server hostname
      port: Server port (default 443)
      auth-key: Optional authorization key (256 bytes)
+     proxy-config: Optional proxy configuration (uses *global-proxy-config* if nil)
 
    Returns:
      New connection instance"
@@ -325,6 +328,9 @@
                               :session-id session-id
                               :auth-key auth-key
                               :tcp-client tcp-client)))
+    ;; Store proxy config if provided
+    (when proxy-config
+      (setf (getf (connection-proxy-config conn)) proxy-config))
     ;; Compute auth-key-id if auth-key is set
     (when auth-key
       (setf (conn-auth-key-id conn)
@@ -347,8 +353,31 @@
      conn: Connection instance
 
    Returns:
-     T if connection initiated successfully"
-  (client-connect (conn-tcp-client conn)))
+     T if connection initiated successfully
+
+   Uses proxy if configured via *global-proxy-config* or connection-specific proxy-config."
+  (let ((proxy-config (or (connection-proxy-config conn)
+                          *global-proxy-config*)))
+    (if (proxy-enabled-p proxy-config)
+        ;; Connect through proxy
+        (let ((host (client-host (conn-tcp-client conn)))
+              (port (client-port (conn-tcp-client conn))))
+          (handler-case
+              (multiple-value-bind (stream socket)
+                  (connect-through-proxy host port :config proxy-config)
+                ;; Set up socket in tcp-client
+                (setf (client-socket (conn-tcp-client conn)) socket
+                      (client-stream (conn-tcp-client conn)) stream
+                      (client-connected-p (conn-tcp-client conn)) t)
+                ;; Invoke connect callback
+                (when (client-on-connect (conn-tcp-client conn))
+                  (funcall (client-on-connect (conn-tcp-client conn)) conn))
+                t)
+            (proxy-error (e)
+              (format *error-output* "Proxy connection failed: ~A~%" (proxy-error-message e))
+              nil)))
+        ;; Direct connection
+        (client-connect (conn-tcp-client conn)))))
 
 (defun disconnect (conn)
   "Close the connection.

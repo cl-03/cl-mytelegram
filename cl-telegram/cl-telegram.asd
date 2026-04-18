@@ -52,7 +52,9 @@
                 :components ((:file "network-package")
                              (:file "tcp-client")
                              (:file "connection")
-                             (:file "rpc"))))
+                             (:file "rpc")
+                             (:file "proxy")
+                             (:file "cdn"))))
 
                ;; API layer
                (:module "api"
@@ -80,6 +82,7 @@
                (:file "tl-tests")
                (:file "mtproto-tests")
                (:file "network-tests")
+               (:file "proxy-tests")
                (:file "api-tests")
                (:file "ui-tests")
                (:file "integration-tests")))
