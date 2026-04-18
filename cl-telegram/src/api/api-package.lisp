@@ -160,4 +160,23 @@
    #:stop-polling
    #:setup-basic-commands
    #:register-inline-handler
-   #:answer-inline-query))
+   #:answer-inline-query
+
+   ;; Secret Chats (E2E Encryption)
+   #:make-secret-chat-manager
+   #:*secret-chat-manager*
+   #:secret-chat
+   #:secret-chat-manager
+   #:request-secret-chat
+   #:accept-secret-chat-request
+   #:get-secret-chat
+   #:get-secret-chat-with-user
+   #:list-secret-chats
+   #:close-secret-chat
+   #:send-secret-message
+   #:send-secret-media
+   #:send-secret-chat-action
+   #:set-secret-chat-ttl
+   #:mark-secret-messages-read
+   #:delete-secret-messages
+   #:handle-encrypted-message-update))

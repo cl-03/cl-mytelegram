@@ -23,4 +23,6 @@
    #:*live-test-dc-id*
    #:*live-test-code*
    ;; Update handler tests
-   #:run-update-handler-tests))
+   #:run-update-handler-tests
+   ;; Secret chat tests
+   #:run-secret-chat-tests))
