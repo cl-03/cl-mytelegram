@@ -10,4 +10,6 @@
    #:run-mtproto-tests
    #:run-network-tests
    #:run-api-tests
-   #:run-ui-tests))
+   #:run-ui-tests
+   #:run-integration-tests
+   #:run-integration-tests-with-creds))
