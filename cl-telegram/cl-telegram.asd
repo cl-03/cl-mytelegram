@@ -97,7 +97,8 @@
                (:file "bot-api-tests")
                (:file "update-handler-tests")
                (:file "secret-chat-tests")
-               (:file "database-tests")))
+               (:file "database-tests")
+               (:file "group-channel-tests")))
 
 ;; Documentation system
 (asdf:defsystem #:cl-telegram/docs

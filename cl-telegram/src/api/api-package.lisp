@@ -74,6 +74,24 @@
    #:toggle-chat-muted
    #:clear-chat-history
    #:search-chats
+   ;; Group/Channel Administration
+   #:get-chat-administrators
+   #:set-chat-administrator
+   #:ban-chat-member
+   #:unban-chat-member
+   #:create-chat-invite-link
+   #:get-chat-invite-link
+   #:revoke-chat-invite-link
+   #:get-chat-invite-link-members
+   ;; Channel-Specific
+   #:get-channel-members
+   #:get-channel-full-info
+   #:set-channel-description
+   #:set-channel-username
+   #:delete-channel
+   #:export-channel-invite-link
+   #:join-channel
+   #:leave-channel
 
    ;; Users API
    #:get-users

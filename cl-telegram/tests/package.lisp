@@ -27,4 +27,8 @@
    ;; Secret chat tests
    #:run-secret-chat-tests
    ;; Database tests
-   #:run-database-tests))
+   #:run-database-tests
+   ;; Group/Channel tests
+   #:run-group-channel-tests
+   ;; Bot API tests
+   #:run-bot-api-tests))

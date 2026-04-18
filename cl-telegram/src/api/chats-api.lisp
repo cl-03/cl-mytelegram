@@ -389,6 +389,297 @@
         (values nil :no-connection "No active connection")))
 
     (let ((request (make-tl-object
+                    'messages.clearChatHistory
+                    :chat-id chat-id
+                    :remove-from-chat-list remove-from-chat-list)))
+      (rpc-handler-case (rpc-call connection request :timeout 10000)
+        (:ok (result)
+          (if (eq (getf result :@type) :ok)
+              (values t nil)
+              (values nil :unexpected-response result)))
+        (:error (err)
+          (values nil :rpc-error err))))))
+
+;;; ### Group/Channel Administration
+
+(defun get-chat-administrators (chat-id)
+  "Get administrators of a chat.
+
+   CHAT-ID: The unique identifier of the chat
+
+   Returns: list of chat administrators on success, error on failure"
+  (unless (authorized-p)
+    (return-from get-chat-administrators
+      (values nil :not-authorized "User not authenticated")))
+
+  (let ((connection (ensure-auth-connection)))
+    (unless connection
+      (return-from get-chat-administrators
+        (values nil :no-connection "No active connection")))
+
+    (let ((request (make-tl-object
+                    'messages.getChatAdministrators
+                    :chat-id chat-id)))
+      (rpc-handler-case (rpc-call connection request :timeout 10000)
+        (:ok (result)
+          (if (eq (getf result :@type) :chatAdministrators)
+              (values (getf result :administrators) nil)
+              (values nil :unexpected-response result)))
+        (:error (err)
+          (values nil :rpc-error err))))))
+
+(defun set-chat-administrator (chat-id user-id &key
+                               (can-change-info nil)
+                               (can-post-messages nil)
+                               (can-edit-messages nil)
+                               (can-delete-messages nil)
+                               (can-restrict-members nil)
+                               (can-invite-users nil)
+                               (can-pin-messages nil)
+                               (can-promote-members nil)
+                               (is-anonymous nil))
+  "Set administrator rights for a user in a chat.
+
+   CHAT-ID: The unique identifier of the chat
+   USER-ID: The ID of the user to promote
+   CAN-CHANGE-INFO: Can change chat info
+   CAN-POST-MESSAGES: Can post messages (channels only)
+   CAN-EDIT-MESSAGES: Can edit messages (channels only)
+   CAN-DELETE-MESSAGES: Can delete messages
+   CAN-RESTRICT-MEMBERS: Can restrict members
+   CAN-INVITE-USERS: Can invite users
+   CAN-PIN-MESSAGES: Can pin messages
+   CAN-PROMOTE-MEMBERS: Can promote other members
+   IS-ANONYMOUS: Is anonymous administrator
+
+   Returns: t on success, error on failure"
+  (unless (authorized-p)
+    (return-from set-chat-administrator
+      (values nil :not-authorized "User not authenticated")))
+
+  (let ((connection (ensure-auth-connection)))
+    (unless connection
+      (return-from set-chat-administrator
+        (values nil :no-connection "No active connection")))
+
+    (let ((request (make-tl-object
+                    'messages.setChatAdministrator
+                    :chat-id chat-id
+                    :user-id user-id
+                    :can-change-info can-change-info
+                    :can-post-messages can-post-messages
+                    :can-edit-messages can-edit-messages
+                    :can-delete-messages can-delete-messages
+                    :can-restrict-members can-restrict-members
+                    :can-invite-users can-invite-users
+                    :can-pin-messages can-pin-messages
+                    :can-promote-members can-promote-members
+                    :is-anonymous is-anonymous)))
+      (rpc-handler-case (rpc-call connection request :timeout 10000)
+        (:ok (result)
+          (if (eq (getf result :@type) :ok)
+              (values t nil)
+              (values nil :unexpected-response result)))
+        (:error (err)
+          (values nil :rpc-error err))))))
+
+(defun ban-chat-member (chat-id user-id &key (banned-until 0) (revoke-messages nil))
+  "Ban (restrict) a user in a chat.
+
+   CHAT-ID: The unique identifier of the chat
+   USER-ID: The ID of the user to ban
+   BANNED-UNTIL: Point in time (Unix timestamp) when restrictions will be lifted; 0 = forever
+   REVOKE-MESSAGES: If true, deletes all messages from the user
+
+   Returns: t on success, error on failure"
+  (unless (authorized-p)
+    (return-from ban-chat-member
+      (values nil :not-authorized "User not authenticated")))
+
+  (let ((connection (ensure-auth-connection)))
+    (unless connection
+      (return-from ban-chat-member
+        (values nil :no-connection "No active connection")))
+
+    (let ((request (make-tl-object
+                    'messages.banChatMember
+                    :chat-id chat-id
+                    :user-id user-id
+                    :banned-until banned-until
+                    :revoke-messages revoke-messages)))
+      (rpc-handler-case (rpc-call connection request :timeout 10000)
+        (:ok (result)
+          (if (eq (getf result :@type) :ok)
+              (values t nil)
+              (values nil :unexpected-response result)))
+        (:error (err)
+          (values nil :rpc-error err))))))
+
+(defun unban-chat-member (chat-id user-id)
+  "Unban a user in a chat.
+
+   CHAT-ID: The unique identifier of the chat
+   USER-ID: The ID of the user to unban
+
+   Returns: t on success, error on failure"
+  (unless (authorized-p)
+    (return-from unban-chat-member
+      (values nil :not-authorized "User not authenticated")))
+
+  (let ((connection (ensure-auth-connection)))
+    (unless connection
+      (return-from unban-chat-member
+        (values nil :no-connection "No active connection")))
+
+    (let ((request (make-tl-object
+                    'messages.unbanChatMember
+                    :chat-id chat-id
+                    :user-id user-id)))
+      (rpc-handler-case (rpc-call connection request :timeout 10000)
+        (:ok (result)
+          (if (eq (getf result :@type) :ok)
+              (values t nil)
+              (values nil :unexpected-response result)))
+        (:error (err)
+          (values nil :rpc-error err))))))
+
+;;; ### Chat Invite Links
+
+(defun create-chat-invite-link (chat-id &key
+                                (name "")
+                                (expire-date 0)
+                                (member-limit 0)
+                                (creates-join-request nil))
+  "Create a chat invite link.
+
+   CHAT-ID: The unique identifier of the chat
+   NAME: Invite link name (0-32 characters)
+   EXPIRE-DATE: Point in time (Unix timestamp) when the link will expire; 0 = never
+   MEMBER-LIMIT: Maximum number of users that can join; 0 = unlimited
+   CREATES-JOIN-REQUEST: If true, users must request to join
+
+   Returns: chatInviteLink object on success, error on failure"
+  (unless (authorized-p)
+    (return-from create-chat-invite-link
+      (values nil :not-authorized "User not authenticated")))
+
+  (let ((connection (ensure-auth-connection)))
+    (unless connection
+      (return-from create-chat-invite-link
+        (values nil :no-connection "No active connection")))
+
+    (let ((request (make-tl-object
+                    'messages.createChatInviteLink
+                    :chat-id chat-id
+                    :name name
+                    :expire-date expire-date
+                    :member-limit member-limit
+                    :creates-join-request creates-join-request)))
+      (rpc-handler-case (rpc-call connection request :timeout 10000)
+        (:ok (result)
+          (if (eq (getf result :@type) :chatInviteLink)
+              (values result nil)
+              (values nil :unexpected-response result)))
+        (:error (err)
+          (values nil :rpc-error err))))))
+
+(defun get-chat-invite-link (chat-id)
+  "Get a chat invite link.
+
+   CHAT-ID: The unique identifier of the chat
+
+   Returns: chatInviteLink object on success, error on failure"
+  (unless (authorized-p)
+    (return-from get-chat-invite-link
+      (values nil :not-authorized "User not authenticated")))
+
+  (let ((connection (ensure-auth-connection)))
+    (unless connection
+      (return-from get-chat-invite-link
+        (values nil :no-connection "No active connection")))
+
+    (let ((request (make-tl-object
+                    'messages.getChatInviteLink
+                    :chat-id chat-id)))
+      (rpc-handler-case (rpc-call connection request :timeout 10000)
+        (:ok (result)
+          (if (eq (getf result :@type) :chatInviteLink)
+              (values result nil)
+              (values nil :unexpected-response result)))
+        (:error (err)
+          (values nil :rpc-error err))))))
+
+(defun revoke-chat-invite-link (chat-id invite-link)
+  "Revoke a chat invite link.
+
+   CHAT-ID: The unique identifier of the chat
+   INVITE-LINK: The invite link to revoke
+
+   Returns: t on success, error on failure"
+  (unless (authorized-p)
+    (return-from revoke-chat-invite-link
+      (values nil :not-authorized "User not authenticated")))
+
+  (let ((connection (ensure-auth-connection)))
+    (unless connection
+      (return-from revoke-chat-invite-link
+        (values nil :no-connection "No active connection")))
+
+    (let ((request (make-tl-object
+                    'messages.revokeChatInviteLink
+                    :chat-id chat-id
+                    :invite-link invite-link)))
+      (rpc-handler-case (rpc-call connection request :timeout 10000)
+        (:ok (result)
+          (if (eq (getf result :@type) :ok)
+              (values t nil)
+              (values nil :unexpected-response result)))
+        (:error (err)
+          (values nil :rpc-error err))))))
+
+(defun get-chat-invite-link-members (chat-id invite-link &key (limit 100) (offset 0))
+  "Get members who joined via an invite link.
+
+   CHAT-ID: The unique identifier of the chat
+   INVITE-LINK: The invite link
+   LIMIT: Number of members to retrieve (1-100)
+   OFFSET: Number of members to skip
+
+   Returns: list of chat invite link members on success, error on failure"
+  (unless (authorized-p)
+    (return-from get-chat-invite-link-members
+      (values nil :not-authorized "User not authenticated")))
+
+  (let ((connection (ensure-auth-connection)))
+    (unless connection
+      (return-from get-chat-invite-link-members
+        (values nil :no-connection "No active connection")))
+
+    (let ((request (make-tl-object
+                    'messages.getChatInviteLinkMembers
+                    :chat-id chat-id
+                    :invite-link invite-link
+                    :limit limit
+                    :offset offset)))
+      (rpc-handler-case (rpc-call connection request :timeout 10000)
+        (:ok (result)
+          (if (eq (getf result :@type) :chatInviteLinkMembers)
+              (values (getf result :members) nil)
+              (values nil :unexpected-response result)))
+        (:error (err)
+          (values nil :rpc-error err))))))
+
+   Returns: t on success, error on failure"
+  (unless (authorized-p)
+    (return-from clear-chat-history
+      (values nil :not-authorized "User not authenticated")))
+
+  (let ((connection (ensure-auth-connection)))
+    (unless connection
+      (return-from clear-chat-history
+        (values nil :no-connection "No active connection")))
+
+    (let ((request (make-tl-object
                     'messages.clearHistory
                     :peer (make-tl-object 'inputPeerUser :user-id chat-id)
                     :remove-from-chat-list remove-from-chat-list)))
@@ -451,3 +742,223 @@
 (defun |sendChatAction| (chat-id action-type)
   "TDLib compatible sendChatAction."
   (send-chat-action chat-id action-type))
+
+;;; ### Channel-Specific Functions
+
+(defun get-channel-members (channel-id &key (limit 100) (offset 0) (filter nil))
+  "Get members of a channel.
+
+   CHANNEL-ID: The unique identifier of the channel
+   LIMIT: Number of members to retrieve (1-100)
+   OFFSET: Number of members to skip
+   FILTER: Filter type (:administrators :creators :kicked :banned)
+
+   Returns: list of channel members on success, error on failure"
+  (unless (authorized-p)
+    (return-from get-channel-members
+      (values nil :not-authorized "User not authenticated")))
+
+  (let ((connection (ensure-auth-connection)))
+    (unless connection
+      (return-from get-channel-members
+        (values nil :no-connection "No active connection")))
+
+    (let ((request (make-tl-object
+                    'channels.getParticipants
+                    :channel-id channel-id
+                    :filter (or filter :all)
+                    :limit limit
+                    :offset offset)))
+      (rpc-handler-case (rpc-call connection request :timeout 10000)
+        (:ok (result)
+          (if (eq (getf result :@type) :channelParticipants)
+              (values (getf result :participants) nil)
+              (values nil :unexpected-response result)))
+        (:error (err)
+          (values nil :rpc-error err))))))
+
+(defun get-channel-full-info (channel-id)
+  "Get full information about a channel.
+
+   CHANNEL-ID: The unique identifier of the channel
+
+   Returns: channelFullInfo object on success, error on failure"
+  (unless (authorized-p)
+    (return-from get-channel-full-info
+      (values nil :not-authorized "User not authenticated")))
+
+  (let ((connection (ensure-auth-connection)))
+    (unless connection
+      (return-from get-channel-full-info
+        (values nil :no-connection "No active connection")))
+
+    (let ((request (make-tl-object
+                    'channels.getFullChannelInfo
+                    :channel-id channel-id)))
+      (rpc-handler-case (rpc-call connection request :timeout 10000)
+        (:ok (result)
+          (if (eq (getf result :@type) :channelFullInfo)
+              (values result nil)
+              (values nil :unexpected-response result)))
+        (:error (err)
+          (values nil :rpc-error err))))))
+
+(defun set-channel-description (channel-id description)
+  "Set channel description.
+
+   CHANNEL-ID: The unique identifier of the channel
+   DESCRIPTION: New channel description (0-255 characters)
+
+   Returns: t on success, error on failure"
+  (unless (authorized-p)
+    (return-from set-channel-description
+      (values nil :not-authorized "User not authenticated")))
+
+  (let ((connection (ensure-auth-connection)))
+    (unless connection
+      (return-from set-channel-description
+        (values nil :no-connection "No active connection")))
+
+    (let ((request (make-tl-object
+                    'channels.setChannelDescription
+                    :channel-id channel-id
+                    :description description)))
+      (rpc-handler-case (rpc-call connection request :timeout 10000)
+        (:ok (result)
+          (if (eq (getf result :@type) :ok)
+              (values t nil)
+              (values nil :unexpected-response result)))
+        (:error (err)
+          (values nil :rpc-error err))))))
+
+(defun set-channel-username (channel-id username)
+  "Set channel username.
+
+   CHANNEL-ID: The unique identifier of the channel
+   USERNAME: New username (empty string to remove)
+
+   Returns: t on success, error on failure"
+  (unless (authorized-p)
+    (return-from set-channel-username
+      (values nil :not-authorized "User not authenticated")))
+
+  (let ((connection (ensure-auth-connection)))
+    (unless connection
+      (return-from set-channel-username
+        (values nil :no-connection "No active connection")))
+
+    (let ((request (make-tl-object
+                    'channels.setChannelUsername
+                    :channel-id channel-id
+                    :username username)))
+      (rpc-handler-case (rpc-call connection request :timeout 10000)
+        (:ok (result)
+          (if (eq (getf result :@type) :ok)
+              (values t nil)
+              (values nil :unexpected-response result)))
+        (:error (err)
+          (values nil :rpc-error err))))))
+
+(defun delete-channel (channel-id)
+  "Delete a channel (owner only).
+
+   CHANNEL-ID: The unique identifier of the channel
+
+   Returns: t on success, error on failure"
+  (unless (authorized-p)
+    (return-from delete-channel
+      (values nil :not-authorized "User not authenticated")))
+
+  (let ((connection (ensure-auth-connection)))
+    (unless connection
+      (return-from delete-channel
+        (values nil :no-connection "No active connection")))
+
+    (let ((request (make-tl-object
+                    'channels.deleteChannel
+                    :channel-id channel-id)))
+      (rpc-handler-case (rpc-call connection request :timeout 10000)
+        (:ok (result)
+          (if (eq (getf result :@type) :ok)
+              (values t nil)
+              (values nil :unexpected-response result)))
+        (:error (err)
+          (values nil :rpc-error err))))))
+
+(defun export-channel-invite-link (channel-id)
+  "Export channel invite link.
+
+   CHANNEL-ID: The unique identifier of the channel
+
+   Returns: chatInviteLink object on success, error on failure"
+  (unless (authorized-p)
+    (return-from export-channel-invite-link
+      (values nil :not-authorized "User not authenticated")))
+
+  (let ((connection (ensure-auth-connection)))
+    (unless connection
+      (return-from export-channel-invite-link
+        (values nil :no-connection "No active connection")))
+
+    (let ((request (make-tl-object
+                    'channels.exportInviteLink
+                    :channel-id channel-id)))
+      (rpc-handler-case (rpc-call connection request :timeout 10000)
+        (:ok (result)
+          (if (eq (getf result :@type) :chatInviteLink)
+              (values result nil)
+              (values nil :unexpected-response result)))
+        (:error (err)
+          (values nil :rpc-error err))))))
+
+(defun join-channel (channel-id)
+  "Join a channel.
+
+   CHANNEL-ID: The unique identifier of the channel
+
+   Returns: t on success, error on failure"
+  (unless (authorized-p)
+    (return-from join-channel
+      (values nil :not-authorized "User not authenticated")))
+
+  (let ((connection (ensure-auth-connection)))
+    (unless connection
+      (return-from join-channel
+        (values nil :no-connection "No active connection")))
+
+    (let ((request (make-tl-object
+                    'channels.joinChannel
+                    :channel-id channel-id)))
+      (rpc-handler-case (rpc-call connection request :timeout 10000)
+        (:ok (result)
+          (if (eq (getf result :@type) :ok)
+              (values t nil)
+              (values nil :unexpected-response result)))
+        (:error (err)
+          (values nil :rpc-error err))))))
+
+(defun leave-channel (channel-id)
+  "Leave a channel.
+
+   CHANNEL-ID: The unique identifier of the channel
+
+   Returns: t on success, error on failure"
+  (unless (authorized-p)
+    (return-from leave-channel
+      (values nil :not-authorized "User not authenticated")))
+
+  (let ((connection (ensure-auth-connection)))
+    (unless connection
+      (return-from leave-channel
+        (values nil :no-connection "No active connection")))
+
+    (let ((request (make-tl-object
+                    'channels.leaveChannel
+                    :channel-id channel-id)))
+      (rpc-handler-case (rpc-call connection request :timeout 10000)
+        (:ok (result)
+          (if (eq (getf result :@type) :ok)
+              (values t nil)
+              (values nil :unexpected-response result)))
+        (:error (err)
+          (values nil :rpc-error err))))))
