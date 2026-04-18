@@ -50,6 +50,14 @@
    #:get-message-history
    #:search-messages
    #:send-reaction
+   #:send-file
+   #:download-file
+   #:send-photo
+   #:send-document
+   #:send-audio
+   #:send-video
+   #:*upload-part-size*
+   #:*max-file-size*
 
    ;; Chats API
    #:get-chats
