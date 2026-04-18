@@ -70,7 +70,8 @@
                              (:file "bot-handlers")
                              (:file "update-handler")
                              (:file "secret-chat")
-                             (:file "database"))))
+                             (:file "database")
+                             (:file "voip"))))
 
                ;; UI layer
                (:module "ui"
@@ -99,7 +100,8 @@
                (:file "update-handler-tests")
                (:file "secret-chat-tests")
                (:file "database-tests")
-               (:file "group-channel-tests")))
+               (:file "group-channel-tests")
+               (:file "voip-tests")))
 
 ;; Documentation system
 (asdf:defsystem #:cl-telegram/docs

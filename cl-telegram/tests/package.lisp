@@ -31,4 +31,6 @@
    ;; Group/Channel tests
    #:run-group-channel-tests
    ;; Bot API tests
-   #:run-bot-api-tests))
+   #:run-bot-api-tests
+   ;; VoIP tests
+   #:run-voip-tests))

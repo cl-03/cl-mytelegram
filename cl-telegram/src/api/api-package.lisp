@@ -226,4 +226,34 @@
    #:get-setting
    #:get-database-stats
    #:vacuum-database
-   #:clear-all-cache))
+   #:clear-all-cache
+
+   ;; VoIP / Calls
+   #:make-call-manager
+   #:*call-manager*
+   #:init-voip
+   #:close-voip
+   #:make-call-protocol
+   #:create-call
+   #:accept-call
+   #:decline-call
+   #:end-call
+   #:toggle-call-mute
+   #:toggle-call-video
+   #:get-call
+   #:list-active-calls
+   #:get-call-stats
+   ;; Group Calls
+   #:create-group-call
+   #:join-group-call
+   #:leave-group-call
+   #:toggle-group-call-mute
+   #:toggle-group-call-video
+   #:get-group-call-participants
+   #:get-group-call
+   #:list-active-group-calls
+   #:get-group-call-stats
+   ;; WebRTC
+   #:generate-webrtc-offer
+   #:generate-webrtc-answer
+   #:handle-ice-candidate))
