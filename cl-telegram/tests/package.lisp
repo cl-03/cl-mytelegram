@@ -25,4 +25,6 @@
    ;; Update handler tests
    #:run-update-handler-tests
    ;; Secret chat tests
-   #:run-secret-chat-tests))
+   #:run-secret-chat-tests
+   ;; Database tests
+   #:run-database-tests))

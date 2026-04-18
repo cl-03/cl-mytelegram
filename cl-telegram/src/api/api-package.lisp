@@ -179,4 +179,33 @@
    #:set-secret-chat-ttl
    #:mark-secret-messages-read
    #:delete-secret-messages
-   #:handle-encrypted-message-update))
+   #:handle-encrypted-message-update
+
+   ;; Local Database Cache
+   #:init-database
+   #:close-database
+   #:cache-user
+   #:get-cached-user
+   #:search-cached-users
+   #:cache-chat
+   #:get-cached-chat
+   #:list-cached-chats
+   #:cache-message
+   #:cache-messages
+   #:get-cached-messages
+   #:get-cached-message
+   #:search-cached-messages
+   #:delete-cached-message
+   #:clear-chat-cache
+   #:cache-secret-chat
+   #:get-cached-secret-chat
+   #:cache-session
+   #:get-current-session
+   #:get-cached-auth-key
+   #:cache-file-info
+   #:get-cached-file-path
+   #:set-setting
+   #:get-setting
+   #:get-database-stats
+   #:vacuum-database
+   #:clear-all-cache))
