@@ -43,10 +43,11 @@ Implemented:
 - [x] **CLOG GUI** - Web-based graphical interface with dark theme, chat list, message view
 - [x] **Group/Channel Admin** - Administrator management, member ban/unban, invite links
 - [x] **Media Viewer** - Full-screen viewer for photos, videos, documents, audio files
+- [x] **VoIP/Video Calls** - Individual and group call infrastructure, WebRTC signaling
 
 In Progress:
+- [ ] WebRTC library integration for actual audio/video streaming
 - [ ] Integration tests with real Telegram servers
-- [ ] Voice/video call infrastructure
 
 Planned:
 - [ ] Sticker and emoji pack management
