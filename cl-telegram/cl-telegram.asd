@@ -77,7 +77,8 @@
                 :serial t
                 :components ((:file "ui-package")
                              (:file "cli-client")
-                             (:file "clog-ui")))))
+                             (:file "clog-ui")
+                             (:file "media-viewer")))))
 
 ;; Test system
 (asdf:defsystem #:cl-telegram/tests

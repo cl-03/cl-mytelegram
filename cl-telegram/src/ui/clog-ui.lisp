@@ -628,7 +628,7 @@
   "))
 
 (defun render-message (win container message)
-  "Render a single message.
+  "Render a single message with media support.
 
    Args:
      win: CLOG window object
@@ -639,6 +639,7 @@
          (from-name (getf from :first-name))
          (text (or (getf message :text) ""))
          (date (getf message :date))
+         (media (getf message :media))
          (is-outgoing (eq from-id cl-telegram/api::*auth-user-id*))
          (msg-class (if is-outgoing "message message-outgoing" "message message-incoming"))
          (msg-el (clog:create-element win "div" :class msg-class)))
@@ -648,9 +649,97 @@
                     (clog:create-element win "div" :class "message-sender"
                                          :text from-name)))
 
+    ;; Check for media
+    (when media
+      (let ((media-type (getf media :@type)))
+        (cond
+          ;; Photo
+          ((or (eq media-type :photo) (eq media-type :messageMediaPhoto))
+           (let* ((sizes (getf media :sizes))
+                  (largest (if (listp sizes) (car (last sizes)) nil))
+                  (thumb-file-id (when largest (getf largest :file-id))))
+             (if thumb-file-id
+                 ;; Show image thumbnail
+                 (let ((img-el (clog:create-element win "img"
+                                                    :class "message-media-thumbnail"
+                                                    :style "max-width: 200px; max-height: 200px; border-radius: 8px; cursor: pointer;"))
+                       (caption (getf message :caption)))
+                   ;; Store file-id in data attribute
+                   (setf (clog:attribute img-el "data-file-id") thumb-file-id)
+                   (setf (clog:attribute img-el "data-media-type") "photo")
+                   ;; Add click handler to open media viewer
+                   (clog:on img-el :click
+                            (lambda (e)
+                              (declare (ignore e))
+                              (open-media-viewer-from-file-id win thumb-file-id message)))
+                   (clog:append! msg-el img-el)
+                   ;; Add caption if present
+                   (when caption
+                     (clog:append! msg-el
+                                   (clog:create-element win "div" :class "message-caption"
+                                                        :text caption))))
+                 ;; No thumbnail, show placeholder
+                 (clog:append! msg-el
+                               (clog:create-element win "div" :class "message-media-placeholder"
+                                                    :text "📷 Photo")))))
+          ;; Document
+          ((or (eq media-type :document) (eq media-type :messageMediaDocument))
+           (let ((file-name (getf media :file-name))
+                 (file-size (getf media :file-size))
+                 (mime-type (getf media :mime-type)))
+             (clog:append! msg-el
+                           (clog:create-element win "div" :class "message-media-document"
+                             (clog:create-element win "div" :class "message-media-icon" :text "📎")
+                             (clog:create-element win "div" :class "message-media-info"
+                               (clog:create-element win "div" :class "message-media-name" :text (or file-name "Unknown file"))
+                               (clog:create-element win "div" :class "message-media-size"
+                                                    :text (format nil "~D KB" (truncate (or file-size 0) 1024))))
+                             (let ((download-btn (clog:create-element win "button"
+                                                                      :class "message-media-download"
+                                                                      :text "Download")))
+                               (clog:on download-btn :click
+                                        (lambda (e)
+                                          (declare (ignore e))
+                                          (download-media-from-file-id win (getf media :file-id))))
+                               download-btn)))))
+          ;; Video
+          ((or (eq media-type :video) (eq media-type :messageMediaVideo))
+           (clog:append! msg-el
+                         (clog:create-element win "div" :class "message-media-video"
+                           (clog:create-element win "div" :class "message-media-icon" :text "🎬")
+                           (clog:create-element win "div" :class "message-media-info"
+                             (clog:create-element win "div" :class "message-media-name" :text "Video"))
+                           (let ((play-btn (clog:create-element win "button"
+                                                                :class "message-media-play"
+                                                                :text "▶ Play")))
+                             (clog:on play-btn :click
+                                      (lambda (e)
+                                        (declare (ignore e))
+                                        (download-and-play-video win (getf media :file-id))))
+                             play-btn))))
+          ;; Audio/Voice
+          ((or (eq media-type :audio) (eq media-type :voice) (eq media-type :messageMediaAudio))
+           (clog:append! msg-el
+                         (clog:create-element win "div" :class "message-media-audio"
+                           (clog:create-element win "div" :class "message-media-icon" :text "🎵")
+                           (clog:create-element win "div" :class "message-media-info"
+                             (clog:create-element win "div" :class "message-media-name"
+                                                  :text (if (eq media-type :voice) "Voice message" "Audio")))
+                           (let ((duration (getf media :duration)))
+                             (when duration
+                               (clog:append! (clog:get-element-by-id win "message-media-info")
+                                             (clog:create-element win "div" :class "message-media-duration"
+                                                                  :text (format nil "~D:~2,'0D"
+                                                                                (truncate duration 60)
+                                                                                (mod duration 60)))))))))))
+
     ;; Message text
+    (when (and text (not (string= text "")))
+      (clog:append! msg-el
+                    (clog:create-element win "div" :class "message-text" :text text)))
+
+    ;; Message meta (timestamp, read status)
     (clog:append! msg-el
-                  (clog:create-element win "div" :class "message-text" :text text)
                   (clog:create-element win "div" :class "message-meta"
                     (clog:create-element win "span" :text (format-time date))))
 
@@ -859,3 +948,115 @@
     (bt:destroy-thread *auto-refresh-timer*)
     (setf *auto-refresh-timer* nil))
   t)
+
+;;; ### Media Viewer Integration
+
+(defun open-media-viewer-from-file-id (win file-id message)
+  "Open media viewer for a file ID.
+
+   Args:
+     win: CLOG window object
+     file-id: Telegram file ID
+     message: Original message containing media
+
+   Returns:
+     Media viewer instance or NIL"
+  (let* ((media (getf message :media))
+         (media-item (cl-telegram/ui:extract-media-from-message message)))
+    (when media-item
+      ;; Show loading overlay
+      (let* ((overlay (clog:create-element win "div" :class "media-loading-overlay"
+                                           :style "position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); z-index: 9999; display: flex; align-items: center; justify-content: center;"))
+             (loading (clog:create-element win "div"
+                                           :style "color: white; font-size: 1.5em; padding: 40px; background: rgba(0,0,0,0.7); border-radius: 10px;")))
+        (setf (clog:text loading) "⏳ Loading media...")
+        (clog:append! overlay loading)
+        (clog:append! (clog:body win) overlay)
+
+        ;; Download in background
+        (bt:make-thread
+         (lambda ()
+           (handler-case
+               (let ((temp-path (merge-pathnames
+                                 (format nil "media-~A.jpg" file-id)
+                                 (uiop:temporary-directory))))
+                 (cl-telegram/api:download-file file-id temp-path)
+                 (setf (cl-telegram/ui::media-file-path media-item) temp-path)
+                 ;; Update viewer with downloaded file
+                 (clog:eval-in-window win
+                   (clog:remove! overlay)
+                   (cl-telegram/ui:render-media-viewer win media-item)))
+             (error (e)
+               (clog:eval-in-window win
+                 (setf (clog:text loading) (format nil "❌ Error: ~A" e))
+                 (sleep 2)
+                 (clog:remove! overlay))))))
+        media-item)))
+
+(defun download-media-from-file-id (win file-id)
+  "Download media from file ID.
+
+   Args:
+     win: CLOG window object
+     file-id: Telegram file ID"
+  (let ((download-status (clog:create-element win "div"
+                                              :text "⏳ Downloading..."
+                                              :style "position: fixed; bottom: 20px; right: 20px; background: rgba(0,0,0,0.8); color: white; padding: 15px 25px; border-radius: 8px; z-index: 10000;")))
+    (clog:append! (clog:body win) download-status)
+    (bt:make-thread
+     (lambda ()
+       (handler-case
+           (let ((temp-path (merge-pathnames
+                             (format nil "download-~A.dat" file-id)
+                             (uiop:temporary-directory))))
+             (cl-telegram/api:download-file file-id temp-path)
+             (clog:eval-in-window win
+               (setf (clog:text download-status) (format nil "✅ Downloaded: ~A" temp-path))
+               (sleep 2)
+               (clog:remove! download-status))
+             (format t "Downloaded to: ~A~%" temp-path))
+         (error (e)
+           (clog:eval-in-window win
+             (setf (clog:text download-status) (format nil "❌ Error: ~A" e))
+             (sleep 3)
+             (clog:remove! download-status))
+           (format t "Download error: ~A~%" e)))))))
+
+(defun download-and-play-video (win file-id)
+  "Download and play video.
+
+   Args:
+     win: CLOG window object
+     file-id: Telegram file ID"
+  (let ((status (clog:create-element win "div"
+                                     :text "⏳ Downloading video..."
+                                     :style "position: fixed; bottom: 20px; right: 20px; background: rgba(0,0,0,0.8); color: white; padding: 15px 25px; border-radius: 8px; z-index: 10000;")))
+    (clog:append! (clog:body win) status)
+    (bt:make-thread
+     (lambda ()
+       (handler-case
+           (let ((temp-path (merge-pathnames
+                             (format nil "video-~A.mp4" file-id)
+                             (uiop:temporary-directory))))
+             (cl-telegram/api:download-file file-id temp-path)
+             (clog:eval-in-window win
+               (clog:remove! status)
+               ;; Open in native player or show HTML5 video
+               (let ((video-container (clog:create-element win "div"
+                                                           :style "position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: black; z-index: 10001; display: flex; align-items: center; justify-content: center; flex-direction: column;")))
+                 (clog:append! video-container
+                   (clog:create-element win "video"
+                                        :controls t
+                                        :autoplay t
+                                        :style "max-width: 100%; max-height: 80%;"
+                                        (clog:evaluate video-container "this.querySelector('video').src = '~A';" temp-path)))
+                 (clog:append! (clog:body win) video-container)
+                 ;; Close on escape
+                 (clog:evaluate video-container "document.addEventListener('keydown', function(e) { if (e.key === 'Escape') this.remove(); });")))
+             (format t "Video downloaded to: ~A~%" temp-path))
+         (error (e)
+           (clog:eval-in-window win
+             (setf (clog:text status) (format nil "❌ Error: ~A" e))
+             (sleep 3)
+             (clog:remove! status))
+           (format t "Download error: ~A~%" e)))))))

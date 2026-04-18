@@ -14,4 +14,26 @@
    #:make-clog-ui
    #:clog-ui-run
    #:clog-ui-show-chat
-   #:clog-ui-update-message))
+   #:clog-ui-update-message
+
+   ;; Media Viewer
+   #:media-item
+   #:media-viewer
+   #:media-file-id
+   #:media-file-type
+   #:media-file-path
+   #:media-file-size
+   #:media-mime-type
+   #:media-thumbnail
+   #:media-caption
+   #:media-width
+   #:media-height
+   #:media-duration
+   #:extract-media-from-message
+   #:download-media
+   #:render-media-thumbnail
+   #:render-media-viewer
+   #:open-media-viewer
+   #:render-media-gallery
+   #:find-messages-with-media
+   #:get-media-count))
