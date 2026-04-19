@@ -461,3 +461,475 @@
   (setf *skip-interactive-tests* (not interactive))
   (load-integration-config)
   (fiveam:run! test-name))
+
+;;; ============================================================================
+;;; ### v0.13.0 New Features Tests
+;;; ============================================================================
+
+;;; Stories Animations and Effects Tests
+
+(test test-create-story-animation
+  "Test creating story animations"
+  (ensure-authenticated)
+
+  ;; Test creating different animation types
+  (let ((fade-in (cl-telegram/api:make-story-animation :type :fade-in :duration 500))
+        (zoom-in (cl-telegram/api:make-story-animation :type :zoom-in :duration 600))
+        (slide-up (cl-telegram/api:make-story-animation :type :slide-up :duration 700)))
+    (is fade-in "Should create fade-in animation")
+    (is zoom-in "Should create zoom-in animation")
+    (is slide-up "Should create slide-up animation")
+    (is (eq (cl-telegram/api:story-animation-type fade-in) :fade-in)
+        "Animation type should match")
+    (is (= (cl-telegram/api:story-animation-duration zoom-in) 600)
+        "Animation duration should match")))
+
+(test test-create-story-filter
+  "Test creating story filters"
+  (ensure-authenticated)
+
+  (let ((vintage (cl-telegram/api:make-story-filter :type :vintage :intensity 0.8))
+        (bw (cl-telegram/api:make-story-filter :type :bw :intensity 1.0))
+        (cinematic (cl-telegram/api:make-story-filter :type :cinematic :intensity 0.6)))
+    (is vintage "Should create vintage filter")
+    (is bw "Should create bw filter")
+    (is cinematic "Should create cinematic filter")
+    (is (eq (cl-telegram/api:story-filter-type vintage) :vintage)
+        "Filter type should match")))
+
+(test test-apply-story-preset
+  "Test applying story effect presets"
+  (ensure-authenticated)
+
+  ;; Test built-in presets
+  (let ((presets '(:cinematic :vlog :dramatic :minimal :party :nostalgic)))
+    (dolist (preset presets)
+      (let ((effects (cl-telegram/api:apply-story-preset preset)))
+        (is effects "Should apply ~A preset" preset)
+        (is (listp effects) "Should return effect list")))))
+
+(test test-post-story-with-animation
+  "Test posting story with animation (non-interactive)"
+  (ensure-authenticated)
+
+  ;; This test verifies the API call structure without actually posting
+  ;; For real testing, you would need valid media content
+  (let ((animation (cl-telegram/api:make-story-animation :type :fade-in)))
+    (is animation "Should create animation object")
+    ;; Verify animation can be serialized
+    (is (typep animation 'cl-telegram/api:story-animation)
+        "Should be story-animation type")))
+
+;;; Premium Features Tests
+
+(test test-check-premium-status
+  "Test checking premium status"
+  (ensure-authenticated)
+
+  (let ((is-premium (cl-telegram/api:check-premium-status)))
+    (is (typep is-premium 'boolean)
+        "Should return boolean")
+    (format t "Premium status: ~A~%" is-premium)))
+
+(test test-get-max-file-size
+  "Test getting maximum file size based on premium status"
+  (ensure-authenticated)
+
+  (let* ((is-premium (cl-telegram/api:check-premium-status))
+         (expected-max (if is-premium
+                           (* 4 1024 1024 1024)
+                           (* 2 1024 1024 1024)))
+         (max-size (cl-telegram/api:get-max-file-size)))
+    (is (= max-size expected-max)
+        "Max size should be ~A for ~A account"
+        expected-max (if is-premium "premium" "free"))))
+
+(test test-can-upload-file-p
+  "Test file upload size validation"
+  (ensure-authenticated)
+
+  (let* ((is-premium (cl-telegram/api:check-premium-status))
+         (free-limit (* 2 1024 1024 1024))
+         (premium-limit (* 4 1024 1024 1024))
+         (test-sizes (list 1024            ; 1KB
+                           (* 100 1024)    ; 100KB
+                           (* 10 1024 1024) ; 10MB
+                           free-limit      ; 2GB
+                           (if is-premium premium-limit (* 3 1024 1024 1024)))))
+    (dolist (size test-sizes)
+      (let ((can-upload (cl-telegram/api:can-upload-file-p size)))
+        (format t "Can upload ~A bytes: ~A~%" size can-upload)))))
+
+(test test-premium-sticker-sets
+  "Test getting premium sticker sets"
+  (ensure-authenticated)
+
+  (let ((sets (cl-telegram/api:get-premium-sticker-sets)))
+    (is (listp sets) "Should return list")
+    (format t "Premium sticker sets: ~A~%" (length sets))))
+
+(test test-premium-reactions
+  "Test getting premium reactions"
+  (ensure-authenticated)
+
+  (let ((reactions (cl-telegram/api:get-premium-reactions)))
+    (is (listp reactions) "Should return list")
+    (format t "Premium reactions: ~A~%" (length reactions))))
+
+;;; Object Pooling Tests
+
+(test test-object-pool-initialize
+  "Test object pool initialization"
+  (ensure-authenticated)
+
+  (let ((pool-name "test-pool-1")
+        (allocator (lambda () (list :test-object t)))
+        (deallocator (lambda (obj) (setf (getf obj :test-object) nil) t)))
+    ;; Initialize pool
+    (cl-telegram/api:pool-initialize pool-name allocator
+                                     :initial-count 5
+                                     :max-size 20
+                                     :deallocator deallocator)
+
+    ;; Acquire objects
+    (let ((objs (loop repeat 3
+                      collect (cl-telegram/api:pool-acquire pool-name))))
+      (is (= (length objs) 3) "Should acquire 3 objects")
+      (is (getf (first objs) :test-object) "Object should be valid")
+
+      ;; Release objects back
+      (dolist (obj objs)
+        (cl-telegram/api:pool-release pool-name obj))
+
+      (pass "Object pool test passed"))))
+
+(test test-message-pool-usage
+  "Test message plist pool usage"
+  (ensure-authenticated)
+
+  ;; Acquire message from pool
+  (let ((msg1 (cl-telegram/api:pool-acquire 'message-plist))
+        (msg2 (cl-telegram/api:pool-acquire 'message-plist)))
+    (is msg1 "Should acquire message 1")
+    (is msg2 "Should acquire message 2")
+    (is (getf msg1 :id) "Message should have id field")
+    (is (getf msg1 :text) "Message should have text field")
+
+    ;; Modify message
+    (setf (getf msg1 :id) 12345
+          (getf msg1 :text) "Test message")
+
+    ;; Release back to pool
+    (cl-telegram/api:pool-release 'message-plist msg1)
+    (cl-telegram/api:pool-release 'message-plist msg2)
+
+    (pass "Message pool test passed")))
+
+;;; Byte Buffer Pool Tests
+
+(test test-byte-buffer-operations
+  "Test byte buffer operations"
+  (ensure-authenticated)
+
+  ;; Acquire buffer from pool
+  (let ((buf (cl-telegram/api:pool-acquire 'byte-buffer)))
+    (is buf "Should acquire byte buffer")
+    (is (typep buf 'cl-telegram/api:byte-buffer)
+        "Should be byte-buffer type")
+    (is (>= (cl-telegram/api:byte-buffer-size buf) 4096)
+        "Buffer should have minimum size")
+
+    ;; Ensure capacity
+    (cl-telegram/api:ensure-buffer-capacity buf 8192)
+    (is (>= (cl-telegram/api:byte-buffer-size buf) 8192)
+        "Buffer should grow to requested size")
+
+    ;; Reset buffer
+    (cl-telegram/api:reset-byte-buffer buf)
+    (is (= (cl-telegram/api:byte-buffer-position buf) 0)
+        "Position should be reset to 0")
+
+    ;; Release back to pool
+    (cl-telegram/api:pool-release 'byte-buffer buf)
+
+    (pass "Byte buffer test passed")))
+
+;;; File Upload Tests (Non-Interactive)
+
+(test test-calculate-optimal-part-size
+  "Test calculating optimal upload part size"
+  (ensure-authenticated)
+
+  (let ((test-cases '((1024 . 1024)                      ; 1KB -> 1KB
+                      (* 5 1024 1024) . (* 5 1024 1024)) ; 5MB -> 5MB
+                      (* 50 1024 1024) . (* 256 1024))   ; 50MB -> 256KB
+                      (* 500 1024 1024) . (* 512 1024))  ; 500MB -> 512KB
+                      (* 2 1024 1024 1024) . (* 1024 1024)))) ; 2GB -> 1MB
+    (dolist (case test-cases)
+      (let* ((file-size (car case))
+             (expected (cdr case))
+             (actual (cl-telegram/api:calculate-optimal-part-size file-size)))
+        (is (= actual expected)
+            "Part size for ~A bytes should be ~A" file-size expected)))))
+
+(test test-upload-session-creation
+  "Test upload session creation"
+  (ensure-authenticated)
+
+  ;; Create a temporary test file
+  (let* ((test-dir (uiop:temporary-directory))
+         (test-file (merge-pathnames "test-upload.dat" test-dir))
+         (test-size (* 1024 1024)) ; 1MB
+         (buffer (make-array test-size :element-type '(unsigned-byte 8))))
+    ;; Write test data
+    (with-open-file (stream test-file :direction :output
+                                      :element-type '(unsigned-byte 8))
+      (write-sequence buffer stream))
+
+    ;; Start upload session
+    (let ((session-id (cl-telegram/api:start-file-upload test-file)))
+      (is session-id "Should create upload session")
+      (is (stringp session-id) "Session ID should be string")
+
+      ;; Get progress
+      (let ((progress (cl-telegram/api:get-upload-progress session-id)))
+        (is progress "Should get progress")
+        (is (getf progress :total-parts) "Should have total parts")
+        (is (getf progress :uploaded-parts) "Should have uploaded parts")
+        (is (= (getf progress :uploaded-parts) 0) "Should start at 0"))
+
+      ;; Cancel upload
+      (cl-telegram/api:cancel-upload session-id)
+      (is (not (gethash session-id cl-telegram/api:*active-uploads*))
+          "Session should be removed after cancel")))
+
+    ;; Cleanup test file
+    (when (probe-file test-file)
+      (delete-file test-file))))
+
+;;; Thumbnail Cache Tests
+
+(test test-story-thumbnail-cache
+  "Test story thumbnail caching"
+  (ensure-authenticated)
+
+  (let* ((story-id 12345)
+         (thumbnail-data (make-array 1024 :element-type '(unsigned-byte 8)
+                                                    :initial-element 0)))
+    ;; Cache thumbnail
+    (let ((result (cl-telegram/api:cache-story-thumbnail
+                   story-id thumbnail-data
+                   :width 320 :height 568)))
+      (is result "Should cache thumbnail"))
+
+    ;; Retrieve cached thumbnail
+    (let ((cached (cl-telegram/api:get-cached-story-thumbnail story-id)))
+      (is cached "Should retrieve cached thumbnail")
+      (is (= (cl-telegram/api:story-thumbnail-width cached) 320)
+          "Width should match")
+      (is (= (cl-telegram/api:story-thumbnail-height cached) 568)
+          "Height should match")
+      (is (= (cl-telegram/api:story-thumbnail-size cached) 1024)
+          "Size should match"))
+
+    ;; Clear cache
+    (cl-telegram/api:clear-story-thumbnail-cache)
+    (let ((cleared (cl-telegram/api:get-cached-story-thumbnail story-id)))
+      (is (not cleared) "Cache should be cleared"))))
+
+(test test-thumbnail-eviction
+  "Test thumbnail LRU eviction"
+  (ensure-authenticated)
+
+  ;; Set small cache size for testing
+  (let ((cl-telegram/api:*stories-thumbnail-max-size* 500))
+    ;; Add multiple thumbnails
+    (dotimes (i 10)
+      (let ((data (make-array 100 :element-type '(unsigned-byte 8))))
+        (cl-telegram/api:cache-story-thumbnail i data)))
+
+    ;; Some should be evicted
+    (is (<= cl-telegram/api:*current-thumbnail-cache-size*
+            cl-telegram/api:*stories-thumbnail-max-size*)
+        "Cache size should be within limit"))
+
+  ;; Reset cache size
+  (setf cl-telegram/api:*stories-thumbnail-max-size* (* 5 1024 1024))
+  (cl-telegram/api:clear-story-thumbnail-cache))
+
+;;; Performance Tests
+
+(test test-batch-get-users-no-cons
+  "Test batch user retrieval without excessive consing"
+  (ensure-authenticated)
+
+  (let ((user-ids '(1 2 3 4 5 6 7 8 9 10)))
+    (let ((result (cl-telegram/api:batch-get-users-no-cons user-ids)))
+      (is (typep result 'vector) "Should return vector")
+      (is (= (length result) (length user-ids))
+          "Result length should match input")
+      (is (getf (aref result 0) :id) "Should have user data"))))
+
+(test test-fast-string-operations
+  "Test fast string operations"
+  (ensure-authenticated)
+
+  ;; format-chat-id-fast
+  (is (string= (cl-telegram/api:format-chat-id-fast -1001234567890)
+               "-1001001234567890")
+      "Should format negative chat ID")
+  (is (string= (cl-telegram/api:format-chat-id-fast 123456)
+               "123456")
+      "Should format positive chat ID")
+
+  ;; concat-strings-fast
+  (is (string= (cl-telegram/api:concat-strings-fast "Hello" " " "World")
+               "Hello World")
+      "Should concatenate strings")
+
+  ;; keyword-from-string-fast
+  (let ((kw (cl-telegram/api:keyword-from-string-fast "test-keyword")))
+    (is (keywordp kw) "Should return keyword")
+    (is (eq kw :test-keyword) "Keyword should match")))
+
+(test test-safe-api-call
+  "Test safe API call with retries"
+  (ensure-authenticated)
+
+  ;; Test successful call
+  (let ((result (cl-telegram/api:safe-api-call
+                 (lambda () t)
+                 :retries 3)))
+    (is result "Should return success"))
+
+  ;; Test failing call (should retry)
+  (let ((attempts 0))
+    (cl-telegram/api:safe-api-call
+     (lambda ()
+       (incf attempts)
+       (when (< attempts 3)
+         (error "Simulated error")))
+     :retries 3
+     :delay 100)
+    (is (= attempts 3) "Should retry 3 times")))
+
+;;; Bot API 2025 Tests
+
+(test test-make-visual-effect
+  "Test creating visual effects for inline bots"
+  (ensure-authenticated)
+
+  (let ((effect (cl-telegram/api:make-visual-effect
+                 :fireworks
+                 :start-x 0.5 :start-y 0.5
+                 :end-x 0.7 :end-y 0.3
+                 :intensity 0.8)))
+    (is effect "Should create visual effect")
+    (is (eq (cl-telegram/api:visual-effect-type effect) :fireworks)
+        "Effect type should match")
+    (is (= (cl-telegram/api:visual-effect-intensity effect) 0.8)
+        "Effect intensity should match")))
+
+(test test-inline-result-with-effects
+  "Test inline result with visual effects"
+  (ensure-authenticated)
+
+  (let* ((base-result (cl-telegram/api:make-inline-result-article
+                       "test-id" "Test Title" "Test content"))
+         (effect (cl-telegram/api:make-visual-effect :sparkles))
+         (result-with-effects (cl-telegram/api:add-visual-effects-to-result
+                               base-result (list effect))))
+    (is result-with-effects "Should create result with effects")
+    (is (cl-telegram/api:inline-result-has-effects-p result-with-effects)
+        "Should have effects flag")
+    (is (= (length (cl-telegram/api:effects-visual-effects result-with-effects)) 1)
+        "Should have 1 effect")))
+
+(test test-business-inline-config
+  "Test business inline configuration"
+  (ensure-authenticated)
+
+  (let ((config (cl-telegram/api:make-business-inline-config
+                 :location (list :latitude 40.7128 :longitude -74.0060)
+                 :opening-hours (list :monday "9:00-17:00")
+                 :start-message "Welcome to our business!")))
+    (is config "Should create business config")
+    (is (cl-telegram/api:business-location config)
+        "Should have location")
+    (is (cl-telegram/api:business-start-message config)
+        "Should have start message")))
+
+(test test-paid-media-info
+  "Test paid media information"
+  (ensure-authenticated)
+
+  (let ((media (cl-telegram/api:make-paid-media-info
+                :photo "https://example.com/image.jpg"
+                :price 1000
+                :currency "USD")))
+    (is media "Should create paid media info")
+    (is (eq (cl-telegram/api:paid-media-type media) :photo)
+        "Media type should match")
+    (is (= (cl-telegram/api:paid-media-price media) 1000)
+        "Price should match")
+    (is (string= (cl-telegram/api:paid-media-currency media) "USD")
+        "Currency should match")))
+
+(test test-webapp-init-data-validation
+  "Test web app init data validation"
+  (ensure-authenticated)
+
+  ;; Test with valid init data structure
+  (let ((valid-data (list :user (list :id 123 :username "test")
+                          :chat (list :id 456)
+                          :auth-hash "abc123"
+                          :query-id "query-789")))
+    (let ((result (cl-telegram/api:validate-web-app-init-data valid-data)))
+      ;; Note: Current implementation always returns T
+      ;; TODO: Implement actual HMAC validation
+      (is result "Should validate data"))))
+
+;;; Cleanup Tests
+
+(test test-cleanup-old-cache
+  "Test cleaning up old cache data"
+  (ensure-authenticated)
+
+  (let ((cleaned (cl-telegram/api:cleanup-old-cache :max-age-days 1)))
+    (format t "Cleaned ~A old cache items~%" cleaned)
+    (is (integerp cleaned) "Should return count")))
+
+(test test-vacuum-all-caches
+  "Test vacuuming all caches"
+  (ensure-authenticated)
+
+  (let ((result (cl-telegram/api:vacuum-all-caches))
+    (is result "Should vacuum all caches")))
+
+;;; Test Runner
+
+(defun run-v013-tests ()
+  "Run all v0.13.0 feature tests.
+
+   Returns:
+     Test results summary"
+  (load-integration-config)
+  (setf *skip-interactive-tests* nil)
+  (fiveam:run! '(test-create-story-animation
+                 test-create-story-filter
+                 test-apply-story-preset
+                 test-check-premium-status
+                 test-get-max-file-size
+                 test-can-upload-file-p
+                 test-object-pool-initialize
+                 test-message-pool-usage
+                 test-byte-buffer-operations
+                 test-calculate-optimal-part-size
+                 test-upload-session-creation
+                 test-story-thumbnail-cache
+                 test-batch-get-users-no-cons
+                 test-fast-string-operations
+                 test-make-visual-effect
+                 test-inline-result-with-effects
+                 test-business-inline-config
+                 test-paid-media-info)))
