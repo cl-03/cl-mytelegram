@@ -75,7 +75,9 @@
                              (:file "database")
                              (:file "voip")
                              (:file "webrtc-ffi")
-                             (:file "performance-optimizations"))))
+                             (:file "performance-optimizations")
+                             (:file "stickers")
+                             (:file "channels"))))
 
                ;; UI layer
                (:module "ui"
