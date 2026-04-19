@@ -543,6 +543,57 @@
    #:get-inline-bot-token
    #:set-inline-bot-token
 
+   ;; Inline Bot 2025 Improvements
+   #:inline-result-visual-effect
+   #:inline-result-with-effects
+   #:business-inline-config
+   #:paid-media-info
+   #:web-app-inline-button
+   #:inline-query-context
+   #:visual-effect-type
+   #:visual-effect-start-x
+   #:visual-effect-start-y
+   #:visual-effect-end-x
+   #:visual-effect-end-y
+   #:visual-effect-intensity
+   #:effects-result
+   #:effects-visual-effects
+   #:effects-animation-type
+   #:business-location
+   #:business-hours
+   #:business-start-message
+   #:business-can-send-paid-media
+   #:paid-media-type
+   #:paid-media-url
+   #:paid-media-price
+   #:paid-media-currency
+   #:paid-media-is-paid
+   #:webapp-button-text
+   #:webapp-button-url
+   #:webapp-button-forward-text
+   #:webapp-button-type
+   #:context-switch-pm-param
+   #:context-switch-pm-text
+   #:context-gallery-layout
+   #:context-personal-results
+   #:make-visual-effect
+   #:add-visual-effects-to-result
+   #:make-business-inline-config
+   #:make-paid-media-info
+   #:make-webapp-inline-button
+   #:make-inline-query-context
+   #:answer-inline-query-extended
+   #:send-paid-media
+   #:get-business-connection
+   #:get-user-chat-boosts
+   #:make-inline-result-story
+   #:make-inline-result-giveaway
+   #:make-inline-result-with-spoiler
+   #:make-inline-result-extended-media
+   #:inline-result-has-effects-p
+   #:apply-visual-effect-to-result
+   #:get-enhanced-inline-features
+
    ;; Message Replies & Threads
    #:message-reply
    #:message-thread

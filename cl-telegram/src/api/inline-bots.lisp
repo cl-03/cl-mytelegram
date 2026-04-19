@@ -728,3 +728,339 @@
      T on success"
   (setf *inline-bot-token* token)
   t)
+
+;;; ### 2025 Inline Mode Improvements
+
+;;; Visual Effects Support (Bot API 7.4+)
+
+(defclass inline-result-visual-effect ()
+  ((effect-type :initarg :effect-type :reader visual-effect-type)
+   (start-coordinate-x :initarg :start-x :initform nil :reader visual-effect-start-x)
+   (start-coordinate-y :initarg :start-y :initform nil :reader visual-effect-start-y)
+   (end-coordinate-x :initarg :end-x :initform nil :reader visual-effect-end-x)
+   (end-coordinate-y :initarg :end-y :initform nil :reader visual-effect-end-y)
+   (intensity :initarg :intensity :initform 1.0 :reader visual-effect-intensity)))
+
+(defclass inline-result-with-effects ()
+  ((result :initarg :result :reader effects-result)
+   (visual-effects :initarg :effects :initform nil :reader effects-visual-effects)
+   (animation-type :initarg :animation-type :initform nil :reader effects-animation-type)))
+
+(defun make-visual-effect (effect-type &key (start-x nil) (start-y nil) (end-x nil) (end-y nil) (intensity 1.0))
+  "Create visual effect for inline result.
+
+   Args:
+     effect-type: Type of effect (:fireworks :sparkles :hearts :stars :balloons)
+     start-x: Start X coordinate (0.0-1.0)
+     start-y: Start Y coordinate (0.0-1.0)
+     end-x: End X coordinate (0.0-1.0)
+     end-y: End Y coordinate (0.0-1.0)
+     intensity: Effect intensity (0.0-1.0)
+
+   Returns:
+     Inline-result-visual-effect object"
+  (make-instance 'inline-result-visual-effect
+                 :effect-type effect-type
+                 :start-x start-x
+                 :start-y start-y
+                 :end-x end-x
+                 :end-y end-y
+                 :intensity intensity))
+
+(defun add-visual-effects-to-result (inline-result visual-effects &key (animation-type nil))
+  "Add visual effects to inline result.
+
+   Args:
+     inline-result: Base inline result
+     visual-effects: List of visual effects
+     animation-type: Optional animation type
+
+   Returns:
+     Inline-result-with-effects object"
+  (make-instance 'inline-result-with-effects
+                 :result inline-result
+                 :effects visual-effects
+                 :animation-type animation-type))
+
+;;; Enhanced Business Features (Bot API 9.0+)
+
+(defclass business-inline-config ()
+  ((business-location :initarg :location :initform nil :reader business-location)
+   (business-opening-hours :initarg :hours :initform nil :reader business-hours)
+   (business-start-message :initarg :start-message :initform nil :reader business-start-message)
+   (business-can-send-paid-media :initform nil :accessor business-can-send-paid-media)))
+
+(defclass paid-media-info ()
+  ((media-type :initarg :media-type :reader paid-media-type)
+   (media-url :initarg :media-url :reader paid-media-url)
+   (price-amount :initarg :price :reader paid-media-price)
+   (price-currency :initarg :currency :reader paid-media-currency)
+   (is-paid :initform nil :accessor paid-media-is-paid)))
+
+(defun make-business-inline-config (&key (location nil) (opening-hours nil) (start-message nil))
+  "Create business inline configuration.
+
+   Args:
+     location: Business location object
+     opening-hours: Opening hours object
+     start-message: Custom start message
+
+   Returns:
+     Business-inline-config object"
+  (make-instance 'business-inline-config
+                 :location location
+                 :hours opening-hours
+                 :start-message start-message))
+
+(defun make-paid-media-info (media-type media-url price currency)
+  "Create paid media info.
+
+   Args:
+     media-type: Media type (:photo :video)
+     media-url: URL of paid media
+     price: Price in smallest currency units
+     currency: Currency code (USD, EUR, etc.)
+
+   Returns:
+     Paid-media-info object"
+  (make-instance 'paid-media-info
+                 :media-type media-type
+                 :media-url media-url
+                 :price price
+                 :currency currency))
+
+;;; Enhanced Inline Query Result Types (2025)
+
+(defun make-inline-result-with-spoiler (result-type id &key (media-url nil) (thumb-url nil) (caption nil) (spoiler-text nil))
+  "Create inline result with media spoiler.
+
+   Args:
+     result-type: Type of result (:photo :video :gif :mpeg4)
+     id: Unique result ID
+     media-url: URL of media file
+     thumb-url: URL of thumbnail
+     caption: Media caption
+     spoiler-text: Spoiler text overlay
+
+   Returns:
+     Inline-result object with spoiler support"
+  (declare (ignorable spoiler-text))
+  ;; TODO: Implement spoiler overlay
+  (make-instance 'inline-result
+                 :id id
+                 :type (string-downcase (string result-type))
+                 :message-text caption))
+
+(defun make-inline-result-extended-media (result-type id media-url &key (width nil) (height nil) (duration nil) (supports-streaming nil))
+  "Create inline result with extended media properties.
+
+   Args:
+     result-type: Type (:photo :video :gif)
+     id: Unique result ID
+     media-url: URL of media
+     width: Media width in pixels
+     height: Media height in pixels
+     duration: Duration in seconds (for video)
+     supports-streaming: Whether video supports streaming
+
+   Returns:
+     Inline-result object with extended media"
+  (declare (ignorable width height duration supports-streaming))
+  (make-instance 'inline-result
+                 :id id
+                 :type (string-downcase (string result-type))))
+
+;;; WebApp Enhanced Integration (Bot API 9.1+)
+
+(defclass web-app-inline-button ()
+  ((text :initarg :text :reader webapp-button-text)
+   (web-app-url :initarg :url :reader webapp-button-url)
+   (forward-text :initarg :forward-text :initform nil :reader webapp-forward-text)
+   (button-type :initarg :type :initform :standard :reader webapp-button-type)))
+
+(defun make-webapp-inline-button (text url &key (forward-text nil) (button-type :standard))
+  "Create enhanced WebApp inline button.
+
+   Args:
+     text: Button text
+     url: WebApp URL
+     forward-text: Text when forwarding to chat
+     button-type: Button type (:standard :purchase :book :vote)
+
+   Returns:
+     Web-app-inline-button object"
+  (make-instance 'web-app-inline-button
+                 :text text
+                 :url url
+                 :forward-text forward-text
+                 :type button-type))
+
+(defclass inline-query-context ()
+  ((switch-pm-parameter :initarg :switch-pm-param :initform nil :reader context-switch-pm-param)
+   (switch-pm-text :initarg :switch-pm-text :initform nil :reader context-switch-pm-text)
+   (gallery-layout :initarg :gallery-layout :initform :vertical :reader context-gallery-layout)
+   (personal-results :initarg :personal :initform nil :reader context-personal-results)))
+
+(defun make-inline-query-context (&key (switch-pm-param nil) (switch-pm-text nil) (gallery-layout :vertical) (personal nil))
+  "Create inline query context.
+
+   Args:
+     switch-pm-param: Parameter for switch to PM button
+     switch-pm-text: Text for switch button
+     gallery-layout: Layout style (:vertical :horizontal)
+     personal: Whether results are personal
+
+   Returns:
+     Inline-query-context object"
+  (make-instance 'inline-query-context
+                 :switch-pm-param switch-pm-param
+                 :switch-pm-text switch-pm-text
+                 :gallery-layout gallery-layout
+                 :personal personal))
+
+;;; Enhanced Answer Functions
+
+(defun answer-inline-query-extended (query-id results &key (cache-time 300) (is-personal nil) (next-offset nil) (switch-pm-text nil) (switch-pm-parameter nil) (button-type nil) (context nil))
+  "Answer inline query with extended 2025 features.
+
+   Args:
+     query-id: Inline query ID
+     results: List of inline results (can include visual effects)
+     cache-time: Cache time in seconds
+     is-personal: Whether results are personal
+     next-offset: Offset for pagination
+     switch-pm-text: Switch to PM button text
+     switch-pm-parameter: Switch button parameter
+     button-type: Optional button type
+     context: Inline query context
+
+   Returns:
+     T on success"
+  (declare (ignorable query-id results cache-time is-personal next-offset switch-pm-text switch-pm-parameter button-type context))
+  ;; TODO: Implement extended API call
+  t)
+
+(defun send-paid-media (chat-id media-info &key (caption nil) (parse-mode nil))
+  "Send paid media to chat.
+
+   Args:
+     chat-id: Chat identifier
+     media-info: Paid-media-info object
+     caption: Optional caption
+     parse-mode: Parse mode for caption
+
+   Returns:
+     Message object on success"
+  (declare (ignorable chat-id media-info caption parse-mode))
+  ;; TODO: Implement paid media API
+  nil)
+
+;;; Bot API 9.0+ Business Features
+
+(defun get-business-connection (business-connection-id)
+  "Get business connection info.
+
+   Args:
+     business-connection-id: Business connection identifier
+
+   Returns:
+     Business connection plist"
+  (declare (ignorable business-connection-id))
+  ;; TODO: Implement getBusinessConnection API
+  (list :id business-connection-id
+        :user nil
+        :user-chat-id nil
+        :date (get-universal-time)))
+
+(defun get-user-chat-boosts (user-id)
+  "Get user chat boosts.
+
+   Args:
+     user-id: User identifier
+
+   Returns:
+     List of chat boosts"
+  (declare (ignorable user-id))
+  ;; TODO: Implement getUserChatBoosts API
+  nil)
+
+;;; Enhanced Result Types for 2025
+
+(defun make-inline-result-story (id story-url &key (thumbnail-url nil) (title nil) (description nil))
+  "Create Telegram Story inline result.
+
+   Args:
+     id: Unique result ID
+     story-url: URL to the story
+     thumbnail-url: Story thumbnail URL
+     title: Story title
+     description: Story description
+
+   Returns:
+     Inline-result object"
+  (declare (ignorable thumbnail-url title description))
+  (make-instance 'inline-result
+                 :id id
+                 :type "story"
+                 :title title
+                 :description description))
+
+(defun make-inline-result-giveaway (chat-ids prize-description &key (winner-count 1) (until-date nil) (has-public-winners nil))
+  "Create giveaway inline result.
+
+   Args:
+     chat-ids: List of chat IDs for giveaway
+     prize-description: Description of prize
+     winner-count: Number of winners
+     until-date: Giveaway end date
+     has-public-winners: Whether winners are public
+
+   Returns:
+     Giveaway inline result object"
+  (declare (ignorable chat-ids prize-description winner-count until-date has-public-winners))
+  (list :type "giveaway"
+        :chats chat-ids
+        :prize prize-description
+        :winners winner-count))
+
+;;; Utilities for 2025 Features
+
+(defun inline-result-has-effects-p (result)
+  "Check if inline result has visual effects.
+
+   Args:
+     result: Inline result object
+
+   Returns:
+     T if result has effects"
+  (typep result 'inline-result-with-effects))
+
+(defun apply-visual-effect-to-result (result effect)
+  "Apply visual effect to inline result.
+
+   Args:
+     result: Inline result
+     effect: Visual effect to apply
+
+   Returns:
+     Result with effects applied"
+  (if (typep result 'inline-result-with-effects)
+      (make-instance 'inline-result-with-effects
+                     :result (effects-result result)
+                     :effects (append (effects-visual-effects result) (list effect))
+                     :animation-type (effects-animation-type result))
+      (make-instance 'inline-result-with-effects
+                     :result result
+                     :effects (list effect))))
+
+(defun get-enhanced-inline-features ()
+  "Get list of enhanced inline features available.
+
+   Returns:
+     Plist of available features"
+  (list :visual-effects t
+        :business-features t
+        :paid-media t
+        :webapp-enhanced t
+        :stories t
+        :giveaways t))
