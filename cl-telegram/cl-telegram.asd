@@ -77,7 +77,8 @@
                              (:file "webrtc-ffi")
                              (:file "performance-optimizations")
                              (:file "stickers")
-                             (:file "channels"))))
+                             (:file "channels")
+                             (:file "inline-bots"))))
 
                ;; UI layer
                (:module "ui"
