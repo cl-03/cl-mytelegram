@@ -8,10 +8,56 @@ Complete API documentation for the cl-telegram Telegram client library.
 2. [Messages API](#messages-api)
 3. [Chats API](#chats-api)
 4. [Users API](#users-api)
-5. [Network Layer](#network-layer)
-6. [MTProto Protocol](#mtproto-protocol)
-7. [Crypto Primitives](#crypto-primitives)
-8. [TL Serialization](#tl-serialization)
+5. [Stories API](#stories-api)
+6. [Premium Features](#premium-features)
+7. [Inline Bots 2025](#inline-bots-2025)
+8. [Network Layer](#network-layer)
+9. [MTProto Protocol](#mtproto-protocol)
+10. [Crypto Primitives](#crypto-primitives)
+11. [TL Serialization](#tl-serialization)
+
+---
+
+## New Features (v0.12.0)
+
+### Stories API
+
+Complete Telegram Stories support with posting, viewing, highlights, and privacy controls.
+
+**Key Functions:**
+- `post-story`, `post-story-photo`, `post-story-video` - Post stories
+- `get-stories`, `get-all-stories`, `get-unviewed-stories` - Retrieve stories
+- `mark-story-viewed`, `send-story-reaction` - Interact with stories
+- `create-highlight`, `get-highlights` - Manage highlights
+- `render-stories-viewer`, `render-stories-bar` - UI components
+
+**Documentation:** [STORIES.md](STORIES.md)
+
+### Premium Features
+
+Telegram Premium integration with enhanced limits and exclusive features.
+
+**Key Functions:**
+- `check-premium-status`, `verify-premium-status` - Status checks
+- `get-max-file-size`, `can-upload-file-p` - File upload limits
+- `get-premium-sticker-sets`, `get-premium-reactions` - Premium content
+- `set-profile-color`, `set-chat-theme`, `set-emoji-status` - Customization
+- `transcribe-voice-message-premium` - Voice transcription
+
+**Documentation:** [PREMIUM.md](PREMIUM.md)
+
+### Inline Bots 2025
+
+Enhanced inline bot functionality with Bot API 7.4-9.1 features.
+
+**Key Functions:**
+- `make-visual-effect`, `add-visual-effects-to-result` - Visual effects
+- `make-business-inline-config`, `make-paid-media-info` - Business features
+- `make-webapp-inline-button` - WebApp integration
+- `make-inline-result-story`, `make-inline-result-giveaway` - New result types
+- `answer-inline-query-extended` - Enhanced query responses
+
+**Documentation:** [INLINE_MODE_2025.md](INLINE_MODE_2025.md)
 
 ---
 
