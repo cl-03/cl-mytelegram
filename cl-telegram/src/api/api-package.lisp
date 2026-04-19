@@ -698,6 +698,84 @@
    #:clear-voice-cache
    #:get-available-voice-devices
 
+   ;; Stories & Highlights
+   #:story
+   #:story-highlight
+   #:story-privacy
+   #:stories-state
+   #:story-id
+   #:story-owner
+   #:story-date
+   #:story-expiration-date
+   #:story-media
+   #:story-caption
+   #:story-is-pinned
+   #:story-privacy
+   #:story-can-reply
+   #:story-can-reshare
+   #:story-views-count
+   #:story-reactions
+   #:story-is-viewed
+   #:story-is-forwarded
+   #:highlight-id
+   #:highlight-title
+   #:highlight-cover-media
+   #:highlight-stories
+   #:highlight-date-created
+   #:story-privacy-type
+   #:story-privacy-allowed
+   #:story-privacy-blocked
+   #:story-privacy-is-dark
+   #:stories-has-unviewed
+   #:stories-unviewed-count
+   #:stories-active-story-id
+   #:stories-current-index
+   #:*stories-cache*
+   #:*highlights-cache*
+   #:*stories-state*
+   #:*stories-upload-queue*
+   #:get-stories
+   #:get-all-stories
+   #:get-unviewed-stories
+   #:get-story-by-id
+   #:post-story
+   #:post-story-photo
+   #:post-story-video
+   #:delete-story
+   #:edit-story
+   #:pin-story
+   #:unpin-story
+   #:set-story-privacy
+   #:get-story-privacy-settings
+   #:mark-story-viewed
+   #:send-story-reaction
+   #:get-story-views
+   #:get-story-reactions
+   #:forward-story
+   #:reply-to-story
+   #:create-highlight
+   #:get-highlights
+   #:get-highlight
+   #:edit-highlight
+   #:add-stories-to-highlight
+   #:remove-highlight
+   #:view-next-story
+   #:view-previous-story
+   #:close-stories-viewer
+   #:get-expiring-stories
+   #:cleanup-expired-stories
+   #:get-story-stats
+   #:get-stories-stats
+   #:render-stories-bar
+   #:render-stories-viewer
+   #:render-highlight
+   #:render-highlights-list
+   #:story-is-expired-p
+   #:story-time-remaining
+   #:format-story-time
+   #:clear-stories-cache
+   #:clear-highlights-cache
+
    ;; Performance Optimizations v2
    #:batch-get-users-no-cons
    #:batch-insert-messages-no-cons

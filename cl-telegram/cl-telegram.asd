@@ -81,6 +81,7 @@
                              (:file "inline-bots")
                              (:file "message-threads")
                              (:file "voice-messages")
+                             (:file "stories")
                              (:file "optimizations-v2"))))
 
                ;; UI layer
