@@ -127,4 +127,14 @@
    #:process-queue
    #:*global-message-queue*
    #:init-global-queue
-   #:enqueue-rpc-request))
+   #:enqueue-rpc-request
+
+   ;; WebSocket Client
+   #:make-websocket-client
+   #:connect-websocket
+   #:close-websocket
+   #:send-websocket-message
+   #:websocket-stats
+   #:enable-realtime-updates
+   #:disable-realtime-updates
+   #:*websocket-update-handler*))

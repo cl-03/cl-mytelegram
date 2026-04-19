@@ -58,7 +58,8 @@
                              (:file "connection")
                              (:file "rpc")
                              (:file "proxy")
-                             (:file "cdn"))))
+                             (:file "cdn")
+                             (:file "websocket-client"))))
 
                ;; API layer
                (:module "api"
@@ -77,6 +78,8 @@
                              (:file "webrtc-ffi")
                              (:file "performance-optimizations")
                              (:file "performance-optimizations-v2")
+                             (:file "performance-monitor")
+                             (:file "stability")
                              (:file "stickers")
                              (:file "channels")
                              (:file "inline-bots")
@@ -84,7 +87,12 @@
                              (:file "voice-messages")
                              (:file "stories")
                              (:file "premium")
-                             (:file "optimizations-v2"))))
+                             (:file "optimizations-v2")
+                             (:file "desktop-notifications")
+                             (:file "group-management")
+                             (:file "e2e-encryption")
+                             (:file "search-discovery")
+                             (:file "media-editing"))))
 
                ;; UI layer
                (:module "ui"
@@ -93,7 +101,14 @@
                              (:file "cli-client")
                              (:file "clog-ui")
                              (:file "clog-components")
-                             (:file "media-viewer")))))
+                             (:file "media-viewer")))
+
+               ;; Mobile layer
+               (:module "mobile"
+                :serial t
+                :components ((:file "mobile-package")
+                             (:file "ios-integration")
+                             (:file "android-integration"))))
 
 ;; Test system
 (asdf:defsystem #:cl-telegram/tests
@@ -118,7 +133,14 @@
                (:file "voip-tests")
                (:file "integration-webrtc-tests")
                (:file "integration-telegram-tests")
-               (:file "stickers-channels-tests")))
+               (:file "stickers-channels-tests")
+               (:file "realtime-notification-tests")
+               (:file "group-management-tests")
+               (:file "e2e-encryption-tests")
+               (:file "search-discovery-tests")
+               (:file "media-editing-tests")
+               (:file "performance-stability-tests")
+               (:file "mobile-tests")))
 
 ;; Documentation system
 (asdf:defsystem #:cl-telegram/docs

@@ -36,7 +36,9 @@
    (state :initform :pending :accessor secret-state
           :documentation "Chat state: :pending, :active, :closed")
    (created-at :initform (get-universal-time) :accessor secret-created-at
-                :documentation "Chat creation time"))
+                :documentation "Chat creation time")
+   (flags :initform nil :accessor secret-chat-flags
+          :documentation "Property list for chat flags"))
   (:documentation "Secret chat session with E2E encryption"))
 
 (defclass secret-chat-manager ()

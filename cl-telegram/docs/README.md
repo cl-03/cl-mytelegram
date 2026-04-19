@@ -12,6 +12,13 @@ Welcome to the cl-telegram documentation hub. This directory contains comprehens
 | [MTProto_2_0.md](./MTProto_2_0.md) | MTProto 2.0 protocol implementation details |
 | [NETWORK_LAYER.md](./NETWORK_LAYER.md) | Network layer architecture and connection management |
 | [WEBRTC_SETUP.md](./WEBRTC_SETUP.md) | WebRTC setup guide for voice/video calls |
+| [PERFORMANCE.md](./PERFORMANCE.md) | Performance optimization guide (v0.13.0) |
+
+### New Features (v0.13.0)
+
+| Document | Description |
+|----------|-------------|
+| [PERFORMANCE.md](./PERFORMANCE.md) | Object pooling, large file upload, thumbnail caching, batch ops |
 
 ### New Features (v0.12.0)
 
@@ -214,7 +221,19 @@ Welcome to the cl-telegram documentation hub. This directory contains comprehens
 
 ## 📦 Version History
 
-### v0.12.0 (Current)
+### v0.13.0 (Current)
+
+**New Features:**
+- ✅ Object pooling for reduced GC pressure
+- ✅ Large file upload up to 4GB (Premium)
+- ✅ Thumbnail caching with LRU eviction
+- ✅ Batch operations with minimal consing
+- ✅ Fast string operations
+- ✅ Connection pool monitoring
+- ✅ CLOG UI enhancements (theme switching, premium badge)
+- ✅ Bot API 2025 extended features (visual effects, business, paid media, WebApp)
+
+### v0.12.0
 
 **New Features:**
 - ✅ Stories support with highlights and expiration
@@ -350,5 +369,5 @@ Enable debug logging:
 
 ---
 
-**Last Updated:** April 2025  
-**Version:** v0.12.0
+**Last Updated:** April 2026  
+**Version:** v0.13.0

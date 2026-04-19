@@ -18,6 +18,444 @@ Complete API documentation for the cl-telegram Telegram client library.
 
 ---
 
+## New Features (v0.13.0)
+
+### Performance Optimizations v2
+
+Object pooling, large file upload, thumbnail caching, and batch operations for reduced GC pressure and improved performance.
+
+**Key Functions:**
+- `pool-acquire`, `pool-release` - Object pool operations
+- `pool-initialize` - Initialize custom object pools
+- `start-file-upload`, `upload-file-part`, `get-upload-progress` - Large file upload (up to 4GB)
+- `pause-upload`, `resume-upload`, `cancel-upload` - Upload control
+- `cache-story-thumbnail`, `get-cached-story-thumbnail` - Thumbnail caching with LRU eviction
+- `batch-get-users-no-cons`, `batch-insert-messages-no-cons` - Batch operations
+- `format-chat-id-fast`, `concat-strings-fast`, `keyword-from-string-fast` - Fast string operations
+- `get-connection-pool-stats`, `record-connection-stats` - Connection monitoring
+
+**Documentation:** [PERFORMANCE.md](PERFORMANCE.md)
+
+### CLOG UI Enhancements
+
+Enhanced GUI with premium features, theme switching, and stories animations.
+
+**Key Functions:**
+- `render-premium-badge` - Premium user badge with gradient
+- `render-premium-status-indicator` - Premium status indicator
+- `create-premium-feature-panel` - Premium feature showcase
+- `switch-theme`, `create-theme-switcher` - Dark/light theme switching
+- `render-story-with-animation` - Animated story rendering
+
+### Bot API 2025 Extended Features
+
+Extended inline bot functionality with visual effects, business integration, and paid media.
+
+**Key Functions:**
+- `make-inline-result-article-with-effects`, `make-inline-result-photo-with-effects` - Visual effects
+- `send-inline-result-with-animation` - Send results with animations
+- `get-inline-bot-analytics` - Bot analytics
+- `set-inline-bot-business-location`, `set-inline-bot-business-hours` - Business features
+- `create-paid-media-post` - Paid media posts
+- `answer-web-app-query`, `validate-web-app-init-data` - WebApp integration
+- `send-business-message`, `edit-business-message`, `delete-business-message` - Business messages
+
+**Documentation:** [INLINE_MODE_2025.md](INLINE_MODE_2025.md)
+
+---
+
+## Performance Optimizations v2
+
+Package: `cl-telegram/api`
+
+### Object Pooling
+
+Reduce GC pressure by reusing objects instead of creating new ones.
+
+#### `pool-initialize (pool-name allocator &key initial-count max-size deallocator)`
+
+Initialize a new object pool.
+
+**Parameters:**
+- `pool-name` - Symbol identifying the pool (e.g., `'message-plist`)
+- `allocator` - Function of no arguments that creates new objects
+- `initial-count` - Number of pre-allocated objects (default 10)
+- `max-size` - Maximum pool size (default 100)
+- `deallocator` - Optional reset function for returned objects
+
+**Returns:** `t` on success
+
+**Example:**
+```lisp
+;; Initialize message pool
+(pool-initialize 'message-plist
+                 #'make-message-plist
+                 :initial-count 50
+                 :max-size 200)
+
+;; Initialize byte buffer pool
+(pool-initialize 'byte-buffer
+                 (lambda () (make-byte-buffer :initial-size 4096))
+                 :initial-count 20
+                 :max-size 100
+                 :deallocator #'reset-byte-buffer)
+```
+
+#### `pool-acquire (pool-name)`
+
+Acquire an object from the pool.
+
+**Parameters:**
+- `pool-name` - Symbol identifying the pool
+
+**Returns:** Object from pool (creates new if pool empty)
+
+**Example:**
+```lisp
+(let ((msg (pool-acquire 'message-plist)))
+  (setf (getf msg :text) "Hello")
+  (process-message msg)
+  (pool-release 'message-plist msg))
+```
+
+#### `pool-release (pool-name object)`
+
+Release an object back to the pool.
+
+**Parameters:**
+- `pool-name` - Symbol identifying the pool
+- `object` - Object to release
+
+**Returns:** `t` on success
+
+#### `pool-stats (pool-name)`
+
+Get pool statistics.
+
+**Returns:** plist with:
+- `:allocated-count` - Total objects in pool
+- `:available-count` - Objects available for acquisition
+- `:acquire-count` - Total acquisitions
+- `:max-size` - Maximum pool size
+
+### Byte Buffer Pool
+
+Pre-allocated byte buffers for network operations.
+
+#### `make-byte-buffer (&key initial-size)`
+
+Create a byte buffer.
+
+**Parameters:**
+- `initial-size` - Initial buffer size (default 4096)
+
+#### `ensure-buffer-capacity (buffer size)`
+
+Ensure buffer has capacity for size bytes.
+
+#### `reset-byte-buffer (buffer)`
+
+Reset buffer position for reuse.
+
+### Large File Upload
+
+Upload files up to 4GB (Premium) or 2GB (Free).
+
+#### `start-file-upload (file-path &key file-name mime-type file-size chat-id caption)`
+
+Start a large file upload session.
+
+**Parameters:**
+- `file-path` - Path to file on disk
+- `file-name` - Optional custom filename
+- `mime-type` - Optional MIME type
+- `file-size` - Optional file size in bytes
+- `chat-id` - Target chat ID
+- `caption` - Optional caption
+
+**Returns:** Session ID on success, `nil` on failure
+
+**Example:**
+```lisp
+(let ((session-id (start-file-upload "/path/to/large-file.zip"
+                                      :caption "Large archive")))
+  (when session-id
+    (format t "Upload started: ~A~%" session-id)))
+```
+
+#### `upload-file-part (session-id part-index)`
+
+Upload a single part of a file.
+
+**Parameters:**
+- `session-id` - Upload session ID
+- `part-index` - Part index (0-based)
+
+**Returns:** `t` on success
+
+#### `get-upload-progress (session-id)`
+
+Get upload progress.
+
+**Returns:** plist with:
+- `:uploaded-parts` - Number of uploaded parts
+- `:total-parts` - Total parts
+- `:bytes-uploaded` - Bytes uploaded
+- `:bytes-total` - Total bytes
+- `:percent` - Progress percentage (0-100)
+- `:bytes-per-second` - Upload speed
+
+#### `pause-upload (session-id)`
+
+Pause an upload session.
+
+#### `resume-upload (session-id)`
+
+Resume a paused upload session.
+
+#### `cancel-upload (session-id)`
+
+Cancel and remove an upload session.
+
+### Thumbnail Caching
+
+LRU cache for story thumbnails (5MB default limit).
+
+#### `cache-story-thumbnail (story-id thumbnail-data &key width height mime-type)`
+
+Cache a story thumbnail.
+
+**Parameters:**
+- `story-id` - Story identifier
+- `thumbnail-data` - Image data (byte array)
+- `width` - Thumbnail width
+- `height` - Thumbnail height
+- `mime-type` - MIME type (e.g., "image/jpeg")
+
+**Returns:** `t` on success
+
+#### `get-cached-story-thumbnail (story-id)`
+
+Get cached thumbnail (updates access time for LRU).
+
+**Returns:** `story-thumbnail` object or `nil`
+
+#### `preload-stories-thumbnails (story-ids)`
+
+Preload thumbnails for multiple stories.
+
+#### `clear-story-thumbnail-cache ()`
+
+Clear entire thumbnail cache.
+
+#### `evict-oldest-thumbnails ()`
+
+Manually evict oldest thumbnails when cache exceeds limit.
+
+### Batch Operations
+
+Efficient batch operations with minimal consing.
+
+#### `batch-get-users-no-cons (user-ids)`
+
+Get multiple users in a single batch (returns vector).
+
+**Returns:** Vector of user objects
+
+#### `batch-insert-messages-no-cons (chat-id messages)`
+
+Batch insert messages with minimal consing.
+
+**Parameters:**
+- `messages` - Vector of message plists
+
+### Fast String Operations
+
+Optimized string operations for hot paths.
+
+#### `format-chat-id-fast (chat-id)`
+
+Fast chat ID formatting.
+
+**Example:**
+```lisp
+(format-chat-id-fast -1001234567890)
+;; => "-1001001234567890"
+```
+
+#### `concat-strings-fast (&rest strings)`
+
+Efficient string concatenation (single allocation).
+
+#### `keyword-from-string-fast (string)`
+
+Fast keyword creation with caching.
+
+### Connection Pool Monitoring
+
+Real-time connection statistics.
+
+#### `get-connection-pool-stats ()`
+
+Get current connection pool statistics.
+
+**Returns:** plist with:
+- `:total-connections` - Total connections created
+- `:healthy-connections` - Number of healthy connections
+- `:unhealthy-connections` - Number of unhealthy connections
+- `:avg-latency` - Average latency in ms
+- `:total-requests` - Total requests made
+- `:failed-requests` - Failed request count
+
+#### `record-connection-stats (&key created destroyed request latency)`
+
+Record connection statistics.
+
+#### `reset-connection-pool-stats ()`
+
+Reset all statistics.
+
+---
+
+## CLOG UI Enhancements
+
+Package: `cl-telegram/ui`
+
+### Theme System
+
+#### `*current-theme*`
+
+Special variable holding current theme (`:dark` or `:light`).
+
+#### `switch-theme (win theme)`
+
+Switch UI theme.
+
+**Parameters:**
+- `win` - CLOG window object
+- `theme` - Keyword `:dark` or `:light`
+
+#### `create-theme-switcher (win container)`
+
+Create theme switcher UI component.
+
+### Premium UI Components
+
+#### `render-premium-badge (win container)`
+
+Render premium user badge with gradient background.
+
+#### `render-premium-status-indicator (win container)`
+
+Render premium status indicator panel.
+
+#### `create-premium-feature-panel (win container features)`
+
+Create premium feature showcase panel.
+
+#### `render-chat-header-with-premium (win chat)`
+
+Render chat header with premium indicators.
+
+### Story Animation
+
+#### `render-story-with-animation (win story)`
+
+Render story with CSS keyframe animations.
+
+---
+
+## Bot API 2025 Extended
+
+Package: `cl-telegram/api`
+
+### Visual Effects
+
+#### `make-visual-effect (type &key animation-params sticker-id emoji)`
+
+Create a visual effect.
+
+**Parameters:**
+- `type` - Effect type (`:animation`, `:sticker`, `:emoji`)
+- `animation-params` - Animation parameters plist
+- `sticker-id` - Custom sticker ID
+- `emoji` - Emoji character
+
+**Returns:** Visual effect plist
+
+#### `add-visual-effects-to-result (result visual-effects)`
+
+Add visual effects to inline result.
+
+#### `make-inline-result-article-with-effects (id title input-message-content visual-effects &key description thumb-url)`
+
+Create article inline result with visual effects.
+
+#### `make-inline-result-photo-with-effects (id photo-url thumb-url visual-effects &key caption)`
+
+Create photo inline result with visual effects.
+
+#### `send-inline-result-with-animation (chat-id result-with-effects &key reply-to-message-id)`
+
+Send inline result with animation/visual effects.
+
+### Business Features
+
+#### `make-business-inline-config (business-location business-hours greeting-message)`
+
+Create business inline keyboard configuration.
+
+#### `set-inline-bot-business-location (bot-token location)`
+
+Set bot business location.
+
+#### `set-inline-bot-business-hours (bot-token opening-hours)`
+
+Set bot business hours.
+
+#### `send-business-message (bot-token chat-id text &key reply-markup)`
+
+Send business message with custom keyboard.
+
+#### `edit-business-message (bot-token chat-id message-id text &key reply-markup)`
+
+Edit business message.
+
+#### `delete-business-message (bot-token chat-id message-id)`
+
+Delete business message.
+
+### Paid Media
+
+#### `create-paid-media-post (bot-token chat-id media-info &key caption payload)`
+
+Create paid media post.
+
+**Parameters:**
+- `media-info` - List of media objects (photo/video)
+- `caption` - Optional caption
+- `payload` - Optional payment payload
+
+### WebApp Integration
+
+#### `answer-web-app-query (web-app-query-id results &key cache-time is-personal)`
+
+Answer WebApp inline query.
+
+#### `validate-web-app-init-data (init-data)`
+
+Validate WebApp initialization data.
+
+**Returns:** `(values user-data error)`
+
+#### `get-inline-bot-analytics (bot-token &key start-date end-date metric)`
+
+Get bot analytics data.
+
+**Returns:** Analytics data plist
+
+---
+
 ## New Features (v0.12.0)
 
 ### Stories API

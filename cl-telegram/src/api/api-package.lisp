@@ -77,12 +77,51 @@
    ;; Group/Channel Administration
    #:get-chat-administrators
    #:set-chat-administrator
+   #:remove-chat-administrator
    #:ban-chat-member
    #:unban-chat-member
+   #:restrict-chat-member
    #:create-chat-invite-link
    #:get-chat-invite-link
    #:revoke-chat-invite-link
    #:get-chat-invite-link-members
+   #:make-admin-permissions
+   #:permissions-to-bitmask
+   #:bitmask-to-permissions
+   #:make-member-restrictions
+   ;; Polls and Voting
+   #:make-poll
+   #:send-poll
+   #:stop-poll
+   ;; Group Statistics and Logging
+   #:get-group-statistics
+   #:get-group-admin-log
+   ;; Auto-Moderation
+   #:add-auto-mod-rule
+   #:remove-auto-mod-rule
+   #:get-auto-mod-rules
+   #:check-auto-mod
+   ;; Member Approval
+   #:enable-member-approval
+   #:disable-member-approval
+   #:get-pending-join-requests
+   #:approve-join-request
+   #:decline-join-request
+   ;; Search and Discovery
+   #:make-search-filter
+   #:search-public-chats
+   #:search-public-chats-multi
+   #:search-chats
+   #:search-chats-on-server
+   #:search-recently-found-chats
+   #:search-messages
+   #:search-chat-messages
+   #:search-secret-messages
+   #:search-chat-members
+   #:get-search-query-suggestions
+   #:clear-search-history
+   #:get-search-history
+   #:global-search
    ;; Channel-Specific
    #:get-channel-members
    #:get-channel-full-info
@@ -198,6 +237,22 @@
    #:mark-secret-messages-read
    #:delete-secret-messages
    #:handle-encrypted-message-update
+   ;; E2E Encryption Enhancements
+   #:create-new-secret-chat
+   #:accept-secret-chat
+   #:verify-key-fingerprint
+   #:get-key-fingerprint-visual
+   #:send-encrypted-photo
+   #:send-encrypted-video
+   #:send-encrypted-document
+   #:set-message-ttl
+   #:schedule-message-self-destruct
+   #:detect-screenshot-attempt
+   #:prevent-message-forwarding
+   #:enable-anti-screenshot
+   #:get-secret-chat-stats
+   #:cleanup-expired-secret-chats
+   #:clear-secret-chat-history
 
    ;; Local Database Cache
    #:init-database
@@ -613,6 +668,95 @@
    #:get-business-connection-info
    #:list-business-connections
    #:close-business-connection
+
+   ;; Performance Monitoring
+   #:start-performance-monitoring
+   #:stop-performance-monitoring
+   #:record-metric
+   #:get-performance-stats
+   #:reset-performance-stats
+   #:with-timing
+   #:time-operation
+   #:get-memory-usage
+   #:trigger-garbage-collection
+   #:record-connection-stats
+   #:get-connection-pool-stats
+   #:reset-connection-pool-stats
+   #:cleanup-stale-connections
+   #:optimize-connection-pool
+   #:get-cache-stats
+   #:record-cache-hit
+   #:record-cache-miss
+   #:record-cache-eviction
+   #:implement-lru-eviction
+   #:optimize-message-cache
+   #:record-error
+   #:get-error-rates
+   ;; Stability
+   #:implement-auto-reconnect
+   #:make-auto-reconnect
+   #:exponential-backoff
+   #:with-retry
+   #:setup-error-handling
+   #:make-circuit-breaker
+   #:circuit-breaker-allow-request-p
+   #:circuit-breaker-record-success
+   #:circuit-breaker-record-failure
+   #:get-circuit-breaker-state
+   #:with-circuit-breaker
+   #:register-health-check
+   #:unregister-health-check
+   #:run-health-check
+   #:run-all-health-checks
+   #:get-health-status
+   #:setup-default-health-checks
+   #:cleanup-resources
+   #:log-message
+   #:set-log-level
+   #:with-performance-monitoring
+
+   ;; Media Editing
+   #:edit-message-text
+   #:edit-message-caption
+   #:edit-message-media
+   #:edit-message-reply-markup
+   #:edit-message-live-location
+   #:stop-message-live-location
+   #:edit-message-checklist
+   #:edit-message
+   #:crop-media
+   #:rotate-media
+   #:apply-filter
+   #:generate-thumbnail
+   #:add-text-overlay
+   #:add-emoji-sticker
+   #:make-input-media-photo
+   #:make-input-media-video
+   #:make-input-media-audio
+   #:make-input-media-document
+   #:make-input-media-animation
+
+   ;; Desktop Notifications
+   #:make-notification-manager
+   #:initialize-notifications
+   #:send-notification
+   #:set-quiet-hours
+   #:disable-quiet-hours
+   #:get-notification-history
+   #:clear-notification-history
+   #:show-notification-preview
+   #:setup-notification-handlers
+   #:*notification-manager*
+
+   ;; Real-time Updates (WebSocket)
+   #:make-websocket-client
+   #:connect-websocket
+   #:close-websocket
+   #:send-websocket-message
+   #:enable-realtime-updates
+   #:disable-realtime-updates
+   #:websocket-stats
+   #:*websocket-update-handler*
 
    ;; Message Replies & Threads
    #:message-reply
