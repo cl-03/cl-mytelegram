@@ -4,7 +4,7 @@ A pure Common Lisp Telegram client implementation using MTProto 2.0 protocol.
 
 ## Status
 
-**Beta v0.9.0** - Full features: Encryption, Database, Secret Chats, CLOG GUI, Group Admin, Media Viewer, WebRTC Calls.
+**Beta v0.10.0** - Full features: Encryption, Database, Secret Chats, CLOG GUI, Group Admin, Media Viewer, WebRTC Calls, Stickers, Channels, Inline Bots, Message Threads.
 
 ## Features
 
@@ -47,16 +47,20 @@ Implemented:
 - [x] **WebRTC FFI** - CFFI bindings to libwebrtc for P2P audio/video streaming
 - [x] **Group Call UI** - Multi-participant video chat interface
 - [x] **Media Gallery** - Grid view for chat media with thumbnail previews
+- [x] **Stickers & Emoji** - Sticker pack management, emoji packs, favorite stickers, sticker picker UI
+- [x] **Channel Broadcast** - Channel creation, admin management, broadcast messages, scheduling
+- [x] **Message Reactions** - Emoji reactions, reaction panel, recent reactors tracking
+- [x] **Inline Bots** - Inline query handlers, custom keyboards, callback buttons, web app integration
+- [x] **Message Threads** - Reply to messages, thread management, quote text, thread UI
 
 In Progress:
 - [ ] Integration tests with real Telegram servers
 - [ ] Performance optimization and bug fixes
 
 Planned:
-- [ ] Sticker and emoji pack management
-- [ ] Channel broadcast features
-- [ ] Message reactions and comments
-- [ ] Message replies and threads
+- [ ] Voice messages with waveforms
+- [ ] Stories support
+- [ ] Premium features
 
 ## Requirements
 
