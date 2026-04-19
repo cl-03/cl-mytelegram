@@ -785,6 +785,8 @@
    #:*highlights-cache*
    #:*stories-state*
    #:*stories-upload-queue*
+   #:*story-effects-cache*
+   #:*active-story-animation*
    #:get-stories
    #:get-all-stories
    #:get-unviewed-stories
@@ -826,6 +828,60 @@
    #:format-story-time
    #:clear-stories-cache
    #:clear-highlights-cache
+
+   ;; Story Animations and Effects (v0.13.0)
+   #:story-animation
+   #:story-filter
+   #:story-music
+   #:story-drawing
+   #:story-text-style
+   #:story-animation-type
+   #:story-animation-id
+   #:story-animation-duration
+   #:story-animation-delay
+   #:story-animation-intensity
+   #:story-filter-type
+   #:story-filter-intensity
+   #:story-filter-settings
+   #:story-music-title
+   #:story-music-artist
+   #:story-music-url
+   #:story-music-duration
+   #:story-music-start-time
+   #:story-drawing-color
+   #:story-drawing-strokes
+   #:story-drawing-tool
+   #:story-text-font
+   #:story-text-size
+   #:story-text-color
+   #:story-text-background
+   #:story-text-alignment
+   #:*available-story-animations*
+   #:*available-story-filters*
+   #:*story-effect-presets*
+   #:make-story-animation
+   #:make-story-filter
+   #:make-story-music
+   #:make-story-drawing
+   #:make-story-text-style
+   #:apply-animation-to-story
+   #:apply-filter-to-story
+   #:apply-music-to-story
+   #:apply-drawing-to-story
+   #:apply-text-style-to-story
+   #:post-story-with-animation
+   #:post-story-with-filter
+   #:post-story-with-music
+   #:post-story-with-drawing
+   #:apply-story-preset
+   #:create-drawing-stroke
+   #:create-emoji-sticker
+   #:create-text-overlay
+   #:render-story-animation
+   #:get-story-effects
+   #:remove-story-effects
+   #:preview-story-effect
+   #:clear-story-effects-cache
 
    ;; Telegram Premium
    #:premium-status

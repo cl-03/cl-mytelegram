@@ -6,6 +6,9 @@
 ;;; - Story privacy settings
 ;;; - Story reactions and views
 ;;; - Story expiration handling
+;;; - Story animations and visual effects (v0.13.0)
+;;; - Story filters and stickers (v0.13.0)
+;;; - Story music and audio overlay (v0.13.0)
 
 (in-package #:cl-telegram/api)
 
@@ -746,4 +749,540 @@
    Returns:
      T on success"
   (clrhash *highlights-cache*)
+  t)
+
+;;; ### Story Animations and Visual Effects (v0.13.0)
+
+;;; Story Animation Types
+
+(defclass story-animation ()
+  ((animation-type :initarg :type :initform nil :reader story-animation-type)
+   (animation-id :initarg :id :initform nil :reader story-animation-id)
+   (duration :initarg :duration :initform 3000 :reader story-animation-duration)
+   (delay :initarg :delay :initform 0 :reader story-animation-delay)
+   (intensity :initarg :intensity :initform 1.0 :reader story-animation-intensity)))
+
+(defclass story-filter ()
+  ((filter-type :initarg :type :initform :normal :reader story-filter-type)
+   (filter-intensity :initarg :intensity :initform 1.0 :reader story-filter-intensity)
+   (filter-settings :initarg :settings :initform nil :reader story-filter-settings)))
+
+(defclass story-music ()
+  ((music-title :initarg :title :reader story-music-title)
+   (music-artist :initarg :artist :reader story-music-artist)
+   (music-url :initarg :url :reader story-music-url)
+   (music-duration :initarg :duration :initform 30 :reader story-music-duration)
+   (music-start-time :initarg :start-time :initform 0 :reader story-music-start-time)))
+
+(defclass story-drawing ()
+  ((drawing-color :initarg :color :initform "#FFFFFF" :reader story-drawing-color)
+   (drawing-strokes :initarg :strokes :initform nil :reader story-drawing-strokes)
+   (drawing-tool :initarg :tool :initform :pen :reader story-drawing-tool)))
+
+(defclass story-text-style ()
+  ((text-font :initarg :font :initform "sans-serif" :reader story-text-font)
+   (text-size :initarg :size :initform 24 :reader story-text-size)
+   (text-color :initarg :color :initform "#FFFFFF" :reader story-text-color)
+   (text-background :initarg :background :initform nil :reader story-text-background)
+   (text-alignment :initarg :alignment :initform :center :reader story-text-alignment)))
+
+;;; Available Animations
+
+(defparameter *available-story-animations*
+  '(:fade-in         ; 淡入
+    :zoom-in         ; 放大
+    :slide-left      ; 左滑入
+    :slide-right     ; 右滑入
+    :slide-up        ; 上滑入
+    :slide-down      ; 下滑入
+    :bounce          ; 弹跳
+    :rotate          ; 旋转
+    :flip            ; 翻转
+    :typewriter      ; 打字机效果
+    :glitch          ; 故障效果
+    :sparkle         ; 闪光效果
+    :pulse           ; 脉冲效果
+    :shake           ; 震动效果
+    :pan             ; 平移效果
+    :morph           ; 变形效果
+    )
+  "Available story animation types")
+
+(defparameter *available-story-filters*
+  '(:normal          ; 正常
+    :vintage         ; 复古
+    :bw              ; 黑白
+    :sepia           ; 棕褐色
+    :warm            ; 暖色
+    :cool            ; 冷色
+    :vivid           ; 鲜艳
+    :fade            ; 褪色
+    :dramatic        ; 戏剧
+    :soft            ; 柔和
+    :noir            ; 黑色电影
+    :cyberpunk       ; 赛博朋克
+    :golden          ; 金色时光
+    :blue-hour       ; 蓝色时刻
+    :cinematic       ; 电影感
+    )
+  "Available story filter types")
+
+;;; Global State for Effects
+
+(defvar *story-effects-cache* (make-hash-table :test 'equal)
+  "Cache for story effects and animations")
+
+(defvar *active-story-animation* nil
+  "Currently active story animation")
+
+;;; Animation Creation
+
+(defun make-story-animation (animation-type &key (duration 3000) (delay 0) (intensity 1.0))
+  "Create story animation.
+
+   Args:
+     animation-type: Animation type keyword
+     duration: Animation duration in ms (default: 3000)
+     delay: Delay before starting in ms (default: 0)
+     intensity: Animation intensity 0.0-1.0 (default: 1.0)
+
+   Returns:
+     Story-animation object"
+  (make-instance 'story-animation
+                 :type animation-type
+                 :duration duration
+                 :delay delay
+                 :intensity intensity))
+
+(defun make-story-filter (filter-type &key (intensity 1.0) settings)
+  "Create story filter.
+
+   Args:
+     filter-type: Filter type keyword
+     intensity: Filter intensity 0.0-1.0 (default: 1.0)
+     settings: Additional filter settings plist
+
+   Returns:
+     Story-filter object"
+  (make-instance 'story-filter
+                 :type filter-type
+                 :intensity intensity
+                 :settings settings))
+
+(defun make-story-music (title artist url &key (duration 30) (start-time 0))
+  "Create story music overlay.
+
+   Args:
+     title: Music title
+     artist: Artist name
+     url: Music URL or file ID
+     duration: Clip duration in seconds (default: 30)
+     start-time: Start time in seconds (default: 0)
+
+   Returns:
+     Story-music object"
+  (make-instance 'story-music
+                 :title title
+                 :artist artist
+                 :url url
+                 :duration duration
+                 :start-time start-time))
+
+(defun make-story-drawing (&key (color "#FFFFFF") (tool :pen) strokes)
+  "Create story drawing.
+
+   Args:
+     color: Drawing color (hex)
+     tool: Drawing tool (:pen :marker :highlighter)
+     strokes: List of stroke data
+
+   Returns:
+     Story-drawing object"
+  (make-instance 'story-drawing
+                 :color color
+                 :tool tool
+                 :strokes strokes))
+
+(defun make-story-text-style (&key (font "sans-serif") (size 24) (color "#FFFFFF")
+                                    (background nil) (alignment :center))
+  "Create story text style.
+
+   Args:
+     font: Font family
+     size: Font size in pixels
+     color: Text color (hex)
+     background: Background color or NIL
+     alignment: Text alignment (:left :center :right)
+
+   Returns:
+     Story-text-style object"
+  (make-instance 'story-text-style
+                 :font font
+                 :size size
+                 :color color
+                 :background background
+                 :alignment alignment))
+
+;;; Applying Effects to Stories
+
+(defun apply-animation-to-story (story animation)
+  "Apply animation to story.
+
+   Args:
+     story: Story object
+     animation: Story-animation object
+
+   Returns:
+     Story with animation applied"
+  (let ((story-id (story-id story)))
+    ;; Cache animation
+    (setf (gethash (format nil "~A:animation" story-id) *story-effects-cache*) animation)
+    story))
+
+(defun apply-filter-to-story (story filter)
+  "Apply filter to story.
+
+   Args:
+     story: Story object
+     filter: Story-filter object
+
+   Returns:
+     Story with filter applied"
+  (let ((story-id (story-id story)))
+    (setf (gethash (format nil "~A:filter" story-id) *story-effects-cache*) filter)
+    story))
+
+(defun apply-music-to-story (story music)
+  "Apply music overlay to story.
+
+   Args:
+     story: Story object
+     music: Story-music object
+
+   Returns:
+     Story with music applied"
+  (let ((story-id (story-id story)))
+    (setf (gethash (format nil "~A:music" story-id) *story-effects-cache*) music)
+    story))
+
+(defun apply-drawing-to-story (story drawing)
+  "Apply drawing to story.
+
+   Args:
+     story: Story object
+     drawing: Story-drawing object
+
+   Returns:
+     Story with drawing applied"
+  (let ((story-id (story-id story)))
+    (setf (gethash (format nil "~A:drawing" story-id) *story-effects-cache*) drawing)
+    story))
+
+(defun apply-text-style-to-story (story text style)
+  "Apply text style to story text.
+
+   Args:
+     story: Story object
+     text: Text string to style
+     style: Story-text-style object
+
+   Returns:
+     Styled text object"
+  (list :text text
+        :style style))
+
+;;; Post Story with Effects
+
+(defun post-story-with-animation (media animation &key (caption nil) (privacy 'everybody))
+  "Post story with animation.
+
+   Args:
+     media: Media object
+     animation: Story-animation or animation keyword
+     caption: Optional caption
+     privacy: Privacy setting
+
+   Returns:
+     Story object"
+  (let ((anim-obj (if (typep animation 'story-animation)
+                      animation
+                      (make-story-animation animation))))
+    ;; Post story first
+    (let ((story (post-story media :caption caption :privacy privacy)))
+      (when story
+        (apply-animation-to-story story anim-obj)
+        story))))
+
+(defun post-story-with-filter (media filter &key (caption nil) (privacy 'everybody))
+  "Post story with filter.
+
+   Args:
+     media: Media object
+     filter: Story-filter or filter keyword
+     caption: Optional caption
+     privacy: Privacy setting
+
+   Returns:
+     Story object"
+  (let ((filter-obj (if (typep filter 'story-filter)
+                        filter
+                        (make-story-filter filter))))
+    (let ((story (post-story media :caption caption :privacy privacy)))
+      (when story
+        (apply-filter-to-story story filter-obj)
+        story))))
+
+(defun post-story-with-music (media music &key (caption nil) (privacy 'everybody))
+  "Post story with music overlay.
+
+   Args:
+     media: Media object (photo or video)
+     music: Story-music object or music info plist
+     caption: Optional caption
+     privacy: Privacy setting
+
+   Returns:
+     Story object"
+  (let ((music-obj (if (typep music 'story-music)
+                       music
+                       (make-story-music (getf music :title)
+                                         (getf music :artist)
+                                         (getf music :url)))))
+    (let ((story (post-story media :caption caption :privacy privacy)))
+      (when story
+        (apply-music-to-story story music-obj)
+        story))))
+
+(defun post-story-with-drawing (media drawing &key (caption nil) (privacy 'everybody))
+  "Post story with drawing.
+
+   Args:
+     media: Media object
+     drawing: Story-drawing or drawing data
+     caption: Optional caption
+     privacy: Privacy setting
+
+   Returns:
+     Story object"
+  (let ((drawing-obj (if (typep drawing 'story-drawing)
+                         drawing
+                         (make-story-drawing))))
+    (let ((story (post-story media :caption caption :privacy privacy)))
+      (when story
+        (apply-drawing-to-story story drawing-obj)
+        story))))
+
+;;; Effect Presets
+
+(defparameter *story-effect-presets*
+  '((:cinematic . (:filter :cinematic
+                 :animation :fade-in
+                 :text-style (:font "Georgia" :size 28 :color "#F0E6D2")))
+    (:vlog . (:filter :warm
+            :animation :slide-up
+            :music (:title "Upbeat" :artist "Vlog Music" :url "vlog-theme")))
+    (:dramatic . (:filter :dramatic
+                :animation :zoom-in
+                :text-style (:font "Impact" :size 32 :color "#FFFFFF" :background "#000000")))
+    (:minimal . (:filter :normal
+               :animation :fade-in
+               :text-style (:font "Helvetica" :size 24 :color "#333333")))
+    (:party . (:filter :vivid
+             :animation :bounce
+             :music (:title "Party Mix" :artist "DJ" :url "party-theme")))
+    (:nostalgic . (:filter :vintage
+                 :animation :slide-left
+                 :text-style (:font "Courier" :size 20 :color "#8B7355"))))
+  "Preset story effect combinations")
+
+(defun apply-story-preset (story preset-keyword)
+  "Apply preset effect combination to story.
+
+   Args:
+     story: Story object
+     preset-keyword: Preset keyword (:cinematic :vlog :dramatic :minimal :party :nostalgic)
+
+   Returns:
+     Story with effects applied"
+  (let ((preset (cdr (assoc preset-keyword *story-effect-presets*))))
+    (unless preset
+      (error "Unknown preset: ~A" preset-keyword))
+
+    ;; Apply filter
+    (when (getf preset :filter)
+      (apply-filter-to-story story (make-story-filter (getf preset :filter))))
+
+    ;; Apply animation
+    (when (getf preset :animation)
+      (apply-animation-to-story story (make-story-animation (getf preset :animation))))
+
+    ;; Apply music if present
+    (when (getf preset :music)
+      (let ((music-info (getf preset :music)))
+        (apply-music-to-story story
+                              (make-story-music (getf music-info :title)
+                                                (getf music-info :artist)
+                                                (getf music-info :url)))))
+
+    story))
+
+;;; Story Drawing Tools
+
+(defun create-drawing-stroke (points &key (color "#FFFFFF") (width 3) (tool :pen))
+  "Create drawing stroke for story.
+
+   Args:
+     points: List of (x y) coordinate pairs
+     color: Stroke color
+     width: Stroke width in pixels
+     tool: Tool type
+
+   Returns:
+     Stroke data plist"
+  (list :points points
+        :color color
+        :width width
+        :tool tool))
+
+(defun create-emoji-sticker (emoji x y &key (size 48) (rotation 0))
+  "Create emoji sticker for story.
+
+   Args:
+     emoji: Emoji character
+     x: X position (0-100 percentage)
+     y: Y position (0-100 percentage)
+     size: Sticker size in pixels
+     rotation: Rotation in degrees
+
+   Returns:
+     Sticker data plist"
+  (list :type :emoji
+        :emoji emoji
+        :x x
+        :y y
+        :size size
+        :rotation rotation))
+
+(defun create-text-overlay (text x y &key (style nil) (background nil))
+  "Create text overlay for story.
+
+   Args:
+     text: Text string
+     x: X position (0-100 percentage)
+     y: Y position (0-100 percentage)
+     style: Text style object or plist
+     background: Background color or NIL
+
+   Returns:
+     Text overlay data plist"
+  (list :type :text
+        :text text
+        :x x
+        :y y
+        :style style
+        :background background))
+
+;;; Animation Rendering (CLOG)
+
+(defun render-story-animation (win container story)
+  "Render story with animation in CLOG.
+
+   Args:
+     win: CLOG window
+     container: Container element
+     story: Story object
+
+   Returns:
+     Animation elements"
+  (let ((story-id (story-id story))
+        (animation (gethash (format nil "~A:animation" story-id) *story-effects-cache*)))
+
+    ;; Get media element
+    (let ((media-el (clog:create-element win "div" :class "story-media-container"
+                                         :style "width: 100%; height: 100%; position: relative; overflow: hidden;")))
+      ;; Apply animation class based on type
+      (when animation
+        (let ((anim-type (story-animation-type animation))
+              (duration (story-animation-duration animation)))
+          ;; Create style for animation
+          (let ((anim-style (clog:create-element win "style"))
+                (anim-keyframes (case anim-type
+                                  (:fade-in "@keyframes fadeIn{from{opacity:0}to{opacity:1}}")
+                                  (:zoom-in "@keyframes zoomIn{from{transform:scale(0.5)}to{transform:scale(1)}}")
+                                  (:slide-up "@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}")
+                                  (:slide-down "@keyframes slideDown{from{transform:translateY(-100%)}to{transform:translateY(0)}}")
+                                  (:bounce "@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-20px)}}")
+                                  (otherwise ""))))
+            (setf (clog:html anim-style) anim-keyframes)
+            (clog:append! (clog:body win) anim-style)
+
+            ;; Apply to media element
+            (let ((anim-name (case anim-type
+                               (:fade-in "fadeIn")
+                               (:zoom-in "zoomIn")
+                               (:slide-up "slideUp")
+                               (:slide-down "slideDown")
+                               (:bounce "bounce")
+                               (otherwise "")))
+              (clog:set-css media-el "animation"
+                            (format nil "~A ~Ams ease-out"
+                                    anim-name duration))))))
+
+      (clog:append! container media-el))))
+
+;;; Utilities
+
+(defun get-story-effects (story)
+  "Get all effects applied to story.
+
+   Args:
+     story: Story object
+
+   Returns:
+     Plist of effects"
+  (let ((story-id (story-id story)))
+    (list :animation (gethash (format nil "~A:animation" story-id) *story-effects-cache*)
+          :filter (gethash (format nil "~A:filter" story-id) *story-effects-cache*)
+          :music (gethash (format nil "~A:music" story-id) *story-effects-cache*)
+          :drawing (gethash (format nil "~A:drawing" story-id) *story-effects-cache*))))
+
+(defun remove-story-effects (story)
+  "Remove all effects from story.
+
+   Args:
+     story: Story object
+
+   Returns:
+     T on success"
+  (let ((story-id (story-id story)))
+    (remhash (format nil "~A:animation" story-id) *story-effects-cache*)
+    (remhash (format nil "~A:filter" story-id) *story-effects-cache*)
+    (remhash (format nil "~A:music" story-id) *story-effects-cache*)
+    (remhash (format nil "~A:drawing" story-id) *story-effects-cache*)
+    t))
+
+(defun preview-story-effect (effect-type)
+  "Preview story effect.
+
+   Args:
+     effect-type: Effect keyword
+
+   Returns:
+     Preview data"
+  (case effect-type
+    (:filter (list :type :filter
+                   :name effect-type
+                   :preview-url (format nil "https://telegram.org/stories/filters/~A.jpg" effect-type)))
+    (:animation (list :type :animation
+                      :name effect-type
+                      :duration 3000))
+    (otherwise (list :type :unknown
+                     :name effect-type))))
+
+(defun clear-story-effects-cache ()
+  "Clear story effects cache.
+
+   Returns:
+     T on success"
+  (clrhash *story-effects-cache*)
   t)
