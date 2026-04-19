@@ -55,4 +55,18 @@
    #:show-call-panel
    #:show-group-call-panel
    #:render-call-controls
-   #:update-call-state))
+   #:update-call-state
+
+   ;; Premium UI (v0.13.0)
+   #:render-premium-badge
+   #:render-premium-status-indicator
+   #:create-premium-feature-panel
+   #:render-chat-header-with-premium
+
+   ;; Stories Viewer Enhancements
+   #:render-story-with-animation
+
+   ;; Theme Switching
+   #:switch-theme
+   #:create-theme-switcher
+   #:*current-theme*))

@@ -1292,3 +1292,307 @@
              (sleep 3)
              (clog:remove! status))
            (format t "Download error: ~A~%" e)))))))
+
+;;; ### Premium UI Components (v0.13.0)
+
+(defun render-premium-badge (win container)
+  "Render premium status badge.
+
+   Args:
+     win: CLOG window
+     container: Container element
+
+   Returns:
+     Badge element"
+  (let ((badge (clog:create-element win "div" :class "premium-badge"
+                                    :style "display: inline-flex; align-items: center; gap: 4px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: bold;")))
+    (clog:append! badge (clog:create-element win "span" :class "premium-icon"
+                                             :style "font-size: 14px;"
+                                             :text "⭐"))
+    (clog:append! badge (clog:create-element win "span" :class "premium-text"
+                                             :text "Premium"))
+    (clog:append! container badge)
+    badge))
+
+(defun render-premium-status-indicator (win)
+  "Render premium status indicator in header.
+
+   Args:
+     win: CLOG window
+
+   Returns:
+     T on success"
+  (let ((header (clog:get-element-by-id win "app-header")))
+    (when header
+      ;; Check premium status
+      (let ((is-premium (cl-telegram/api:check-premium-status)))
+        (when is-premium
+          (let ((badge-container (clog:create-element win "div"
+                                                      :style "position: absolute; top: 10px; right: 20px;")))
+            (render-premium-badge win badge-container)
+            (clog:append! header badge-container))))
+    t))
+
+(defun create-premium-feature-panel (win)
+  "Create premium features panel.
+
+   Args:
+     win: CLOG window
+
+   Returns:
+     Panel element"
+  (let ((panel (clog:create-element win "div" :class "premium-features-panel"
+                                    :style "background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; padding: 20px; color: white; margin: 20px;")))
+    ;; Header
+    (clog:append! panel (clog:create-element win "h3" :class "panel-title"
+                                             :style "margin: 0 0 15px 0; font-size: 18px;"
+                                             :text "⭐ Telegram Premium"))
+
+    ;; Features list
+    (let ((features-list (clog:create-element win "ul" :class "features-list"
+                                              :style "list-style: none; padding: 0; margin: 0;")))
+      (dolist (feature '("4GB 文件上传" "高级贴纸和表情" "个人资料颜色" "聊天主题" "语音转录" "双倍限制"))
+        (let ((item (clog:create-element win "li" :class "feature-item"
+                                         :style "padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.1);")))
+          (clog:append! item (clog:create-element win "span" :text "✓ " :style "color: #4ade80; margin-right: 8px;"))
+          (clog:append! item (clog:create-element win "span" :text feature))
+          (clog:append! features-list item)))
+      (clog:append! panel features-list))
+
+    ;; Get premium button
+    (let ((btn (clog:create-element win "button" :class "get-premium-btn"
+                                    :style "background: white; color: #667eea; border: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 15px; width: 100%;")))
+      (setf (clog:text btn) "获取 Premium")
+      (clog:on btn :click
+               (lambda (ev)
+                 (declare (ignore ev))
+                 (cl-telegram/api:show-premium-promo win)))
+      (clog:append! panel btn))
+
+    (clog:append! (clog:body win) panel)
+    panel))
+
+;;; ### Stories Viewer Enhancements (v0.13.0)
+
+(defun render-story-with-animation (win container story)
+  "Render story with animation effects.
+
+   Args:
+     win: CLOG window
+     container: Container element
+     story: Story object
+
+   Returns:
+     Story element with effects"
+  (let ((story-container (clog:create-element win "div" :class "story-with-effects"
+                                              :style "position: relative; width: 100%; height: 100%;")))
+    ;; Progress bars
+    (let ((progress-container (clog:create-element win "div" :class "story-progress"
+                                                   :style "position: absolute; top: 10px; left: 10px; right: 10px; display: flex; gap: 4px; z-index: 100;")))
+      (dotimes (i 5)
+        (let ((bar (clog:create-element win "div" :class "progress-segment"
+                                        :style (format nil "flex: 1; height: 3px; background: rgba(255,255,255,0.3); border-radius: 2px; ~A" (if (= i 0) "animation: progress 3s linear;" "")))))
+          (clog:append! progress-container bar)))
+      (clog:append! story-container progress-container)
+
+      ;; Add keyframes
+      (let ((style (clog:create-element win "style")))
+        (setf (clog:html style) "@keyframes progress{from{width:100%}to{width:0%}}")
+        (clog:append! (clog:head win) style)))
+
+    ;; Story media with animation
+    (let ((media (clog:create-element win "div" :class "story-media"
+                                      :style "position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000;")))
+      ;; Check for animation
+      (let* ((story-id (cl-telegram/api:story-id story))
+             (animation (gethash (format nil "~A:animation" story-id) cl-telegram/api::*story-effects-cache*)))
+        (when animation
+          (let* ((anim-type (cl-telegram/api:story-animation-type animation))
+                 (duration (cl-telegram/api:story-animation-duration animation))
+                 (anim-class (case anim-type
+                               (:fade-in "animate-fade-in")
+                               (:zoom-in "animate-zoom-in")
+                               (:slide-up "animate-slide-up")
+                               (:slide-down "animate-slide-down")
+                               (:bounce "animate-bounce")
+                               (otherwise ""))))
+            (unless (string= anim-class "")
+              (let ((anim-style (clog:create-element win "style")))
+                (setf (clog:html anim-style)
+                      (case anim-type
+                        (:fade-in "@keyframes fadeIn{from{opacity:0}to{opacity:1}}.animate-fade-in{animation:fadeIn 0.5s ease-out}")
+                        (:zoom-in "@keyframes zoomIn{from{transform:scale(0.5)}to{transform:scale(1)}}.animate-zoom-in{animation:zoomIn 0.5s ease-out}")
+                        (:slide-up "@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}.animate-slide-up{animation:slideUp 0.5s ease-out}")
+                        (:slide-down "@keyframes slideDown{from{transform:translateY(-100%)}to{transform:translateY(0)}}.animate-slide-down{animation:slideDown 0.5s ease-out}")
+                        (:bounce "@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-20px)}}.animate-bounce{animation:bounce 0.5s ease-out}")
+                        (otherwise "")))
+                (clog:append! (clog:head win) anim-style))
+              (clog:set-css media "animation" (format nil "~A ~Ams ease-out" anim-type duration))))))
+
+      (clog:append! story-container media))
+
+    ;; Caption with style
+    (let ((caption (cl-telegram/api:story-caption story)))
+      (when caption
+        (let ((caption-el (clog:create-element win "div" :class "story-caption"
+                                               :style "position: absolute; bottom: 80px; left: 20px; right: 20px; color: white; font-size: 16px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);")))
+          (setf (clog:text caption-el) caption)
+          (clog:append! story-container caption-el))))
+
+    ;; Close button
+    (let ((close-btn (clog:create-element win "button" :class "story-close"
+                                          :style "position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.5); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; font-size: 24px; cursor: pointer; z-index: 101;")))
+      (setf (clog:text close-btn) "×")
+      (clog:on close-btn :click
+               (lambda (ev)
+                 (declare (ignore ev))
+                 (cl-telegram/api:close-stories-viewer)))
+      (clog:append! story-container close-btn))
+
+    ;; Reaction buttons
+    (let ((reactions (clog:create-element win "div" :class "story-reactions"
+                                          :style "position: absolute; bottom: 20px; right: 20px; display: flex; gap: 10px;")))
+      (dolist (emoji '("❤️" "🔥" "👍" "😂" "😮" "😢"))
+        (let ((btn (clog:create-element win "button" :class "reaction-btn"
+                                        :style "background: rgba(0,0,0,0.5); border: none; width: 45px; height: 45px; border-radius: 50%; font-size: 24px; cursor: pointer; transition: transform 0.2s;")))
+          (setf (clog:text btn) emoji)
+          (clog:on btn :mouseenter
+                   (lambda (ev)
+                     (declare (ignore ev))
+                     (clog:set-css btn "transform" "scale(1.2)")))
+          (clog:on btn :mouseleave
+                   (lambda (ev)
+                     (declare (ignore ev))
+                     (clog:set-css btn "transform" "scale(1)")))
+          (clog:on btn :click
+                   (lambda (ev)
+                     (declare (ignore ev))
+                     (cl-telegram/api:send-story-reaction (cl-telegram/api:story-id story) emoji)
+                     ;; Show animation
+                     (let ((feedback (clog:create-element win "span" :text emoji
+                                                          :style (format nil "position: fixed; top: ~Apx; left: ~Apx; font-size: 48px; animation: floatUp 1s ease-out; pointer-events: none;"
+                                                                         (- (clog:client-height win) 100)
+                                                                         (- (clog:client-width win) 100)))))
+                       (clog:append! (clog:body win) feedback)
+                       (sleep 0.1)
+                       (clog:remove! feedback)))))
+          (clog:append! reactions btn)))
+
+      ;; Add reaction animation
+      (let ((style (clog:create-element win "style")))
+        (setf (clog:html style) "@keyframes floatUp{from{transform:translateY(0) scale(1); opacity:1}to{transform:translateY(-100px) scale(1.5); opacity:0}}")
+        (clog:append! (clog:head win) style))
+
+      (clog:append! story-container reactions))
+
+    (clog:append! container story-container)
+    story-container))
+
+;;; ### Theme Switching (v0.13.0)
+
+(defvar *current-theme* :dark
+  "Current UI theme (:dark or :light)")
+
+(defun switch-theme (win theme)
+  "Switch UI theme.
+
+   Args:
+     win: CLOG window
+     theme: Theme keyword (:dark or :light)
+
+   Returns:
+     T on success"
+  (setf *current-theme* theme)
+
+  (let ((theme-style (clog:get-element-by-id win "theme-styles")))
+    (unless theme-style
+      (setf theme-style (clog:create-element win "style" :id "theme-styles"))
+      (clog:append! (clog:head win) theme-style))
+
+    (setf (clog:html theme-style)
+          (case theme
+            (:dark "
+              body { background: #0f0f0f !important; color: #fff !important; }
+              .chat-list { background: #171717 !important; border-right: 1px solid #333 !important; }
+              .chat-item { background: #1f1f1f !important; border-bottom: 1px solid #333 !important; }
+              .chat-item:hover { background: #2a2a2a !important; }
+              .message-input { background: #1f1f1f !important; border: 1px solid #333 !important; }
+              .message-input textarea { color: #fff !important; }
+              .message-out { background: #667eea !important; color: #fff !important; }
+              .message-in { background: #1f1f1f !important; color: #fff !important; }
+            ")
+            (:light "
+              body { background: #ffffff !important; color: #000 !important; }
+              .chat-list { background: #f0f2f5 !important; border-right: 1px solid #ddd !important; }
+              .chat-item { background: #fff !important; border-bottom: 1px solid #e0e0e0 !important; }
+              .chat-item:hover { background: #f5f5f5 !important; }
+              .message-input { background: #fff !important; border: 1px solid #ddd !important; }
+              .message-input textarea { color: #000 !important; }
+              .message-out { background: #667eea !important; color: #fff !important; }
+              .message-in { background: #f0f2f5 !important; color: #000 !important; }
+            ")))
+
+  t)
+
+(defun create-theme-switcher (win container)
+  "Create theme switcher button.
+
+   Args:
+     win: CLOG window
+     container: Container element
+
+   Returns:
+     Switcher element"
+  (let ((switcher (clog:create-element win "button" :class "theme-switcher"
+                                       :style "position: fixed; bottom: 20px; left: 20px; background: rgba(0,0,0,0.7); color: white; border: none; padding: 10px 15px; border-radius: 20px; cursor: pointer; z-index: 1000;")))
+    (setf (clog:text switcher) (if (eq *current-theme* :dark) "☀️ 浅色" "🌙 深色"))
+    (clog:on switcher :click
+             (lambda (ev)
+               (declare (ignore ev))
+               (switch-theme win (if (eq *current-theme* :dark) :light :dark))
+               (setf (clog:text switcher) (if (eq *current-theme* :dark) "☀️ 浅色" "🌙 深色"))))
+    (clog:append! container switcher)
+    switcher))
+
+;;; ### Premium Badge in Chat Header
+
+(defun render-chat-header-with-premium (win container chat)
+  "Render chat header with premium badge if user has premium.
+
+   Args:
+     win: CLOG window
+     container: Container element
+     chat: Chat object
+
+   Returns:
+     Header element"
+  (let ((header (clog:create-element win "div" :class "chat-header"
+                                     :style "display: flex; align-items: center; padding: 15px 20px; border-bottom: 1px solid #333; background: #171717;")))
+    ;; Back button
+    (let ((back-btn (clog:create-element win "button" :class "back-btn"
+                                         :style "background: none; border: none; color: white; font-size: 24px; cursor: pointer; margin-right: 15px;")))
+      (setf (clog:text back-btn) "←")
+      (clog:on back-btn :click
+               (lambda (ev)
+                 (declare (ignore ev))
+                 ;; Close chat view
+                 ))
+      (clog:append! header back-btn))
+
+    ;; Chat info
+    (let ((chat-info (clog:create-element win "div" :class "chat-info"
+                                          :style "flex: 1;")))
+      (clog:append! chat-info (clog:create-element win "div" :class "chat-title"
+                                                   :style "font-weight: bold; font-size: 16px;"
+                                                   :text (getf chat :title)))
+      (clog:append! chat-info (clog:create-element win "div" :class "chat-status"
+                                                   :style "font-size: 13px; color: #888;"
+                                                   :text (getf chat :status)))
+      (clog:append! header chat-info))
+
+    ;; Premium badge (if user has premium)
+    (when (cl-telegram/api:check-premium-status)
+      (render-premium-badge win header))
+
+    (clog:append! container header)
+    header))
