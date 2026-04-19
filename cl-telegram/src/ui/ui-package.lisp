@@ -15,6 +15,10 @@
    #:clog-ui-run
    #:clog-ui-show-chat
    #:clog-ui-update-message
+   #:start-clog-ui
+   #:stop-clog-ui
+   #:show-clog-ui
+   #:create-demo-ui
 
    ;; Media Viewer
    #:media-item
@@ -36,4 +40,19 @@
    #:open-media-viewer
    #:render-media-gallery
    #:find-messages-with-media
-   #:get-media-count))
+   #:get-media-count
+   #:open-media-viewer-from-file-id
+   #:download-media-from-file-id
+   #:download-and-play-video
+
+   ;; Group Chat UI
+   #:render-group-members-list
+   #:show-group-info-panel
+   #:show-group-admin-panel
+   #:create-group-invite-link-ui
+
+   ;; Call UI
+   #:show-call-panel
+   #:show-group-call-panel
+   #:render-call-controls
+   #:update-call-state))

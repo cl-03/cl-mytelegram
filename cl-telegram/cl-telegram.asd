@@ -15,7 +15,9 @@
                :cl-base64
                :trivial-gray-streams
                :jonathan
-               :cl-ppcre)
+               :cl-ppcre
+               :clog
+               :cl-sqlite)
   :serial t
   :pathname "src/"
   :components ((:file "package")
@@ -79,6 +81,7 @@
                 :components ((:file "ui-package")
                              (:file "cli-client")
                              (:file "clog-ui")
+                             (:file "clog-components")
                              (:file "media-viewer")))))
 
 ;; Test system

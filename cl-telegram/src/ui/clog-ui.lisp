@@ -104,6 +104,9 @@
         --message-in: #2d3b4a;
         --message-out: #3390ec;
         --border: #405060;
+        --success: #4caf50;
+        --danger: #f44336;
+        --warning: #ff9800;
       }
 
       * {
@@ -148,19 +151,28 @@
         font-weight: 600;
       }
 
-      .refresh-btn {
-        background: var(--accent);
+      .header-actions {
+        display: flex;
+        gap: 8px;
+      }
+
+      .header-btn {
+        background: var(--bg-tertiary);
         border: none;
-        color: white;
-        width: 32px;
-        height: 32px;
+        color: var(--text-primary);
+        width: 36px;
+        height: 36px;
         border-radius: 50%;
         cursor: pointer;
         font-size: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s;
       }
 
-      .refresh-btn:hover {
-        background: var(--accent-hover);
+      .header-btn:hover {
+        background: var(--accent);
       }
 
       .chat-list {
@@ -459,6 +471,136 @@
         0%, 60%, 100% { transform: translateY(0); }
         30% { transform: translateY(-10px); }
       }
+
+      /* Group Chat Styles */
+      .chat-header-actions {
+        display: flex;
+        gap: 8px;
+      }
+
+      .chat-action-btn {
+        background: var(--bg-tertiary);
+        border: none;
+        color: var(--text-primary);
+        padding: 8px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.2s;
+      }
+
+      .chat-action-btn:hover {
+        background: var(--accent);
+      }
+
+      .chat-action-btn.danger:hover {
+        background: var(--danger);
+      }
+
+      .members-list-container {
+        max-height: 300px;
+        overflow-y: auto;
+      }
+
+      .member-item {
+        display: flex;
+        align-items: center;
+        padding: 10px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .member-item:hover {
+        background: var(--bg-tertiary);
+      }
+
+      .member-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--accent);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        margin-right: 12px;
+      }
+
+      .kick-member-btn {
+        background: var(--danger);
+        border: none;
+        color: white;
+        padding: 6px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 12px;
+      }
+
+      /* Info Panel */
+      .info-panel-overlay {
+        position: fixed;
+        top: 0;
+        right: -400px;
+        width: 400px;
+        height: 100vh;
+        background: var(--bg-secondary);
+        border-left: 1px solid var(--border);
+        z-index: 1000;
+        transition: right 0.3s ease;
+        overflow-y: auto;
+      }
+
+      .info-panel-header {
+        padding: 20px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .close-panel-btn {
+        background: transparent;
+        border: none;
+        color: var(--text-secondary);
+        font-size: 24px;
+        cursor: pointer;
+      }
+
+      /* Call UI */
+      .call-control-btn {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        border: none;
+        color: white;
+        font-size: 24px;
+        cursor: pointer;
+      }
+
+      .call-control-btn.end-call {
+        background: #ff4444;
+      }
+
+      /* Media Gallery */
+      .media-gallery-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 10px;
+      }
+
+      .media-item {
+        aspect-ratio: 1;
+        background: var(--bg-tertiary);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2em;
+        cursor: pointer;
+      }
+
+      .media-item:hover {
+        transform: scale(1.05);
+      }
     </style>
     "))
 
@@ -468,8 +610,19 @@
                     (clog:create-element win "div" :class "sidebar"
                       (clog:create-element win "div" :class "sidebar-header"
                         (clog:create-element win "h1" :text "cl-telegram")
-                        (clog:create-element win "button" :class "refresh-btn" :text "↻"
-                                             :onclick "location.reload()"))
+                        (clog:create-element win "div" :class "header-actions"
+                          (let ((settings-btn (clog:create-element win "button"
+                                                                   :class "header-btn"
+                                                                   :text "⚙"
+                                                                   :title "Settings")))
+                            (clog:on settings-btn :click
+                                     (lambda (ev)
+                                       (declare (ignore ev))
+                                       (show-settings-panel win)))
+                            settings-btn)
+                          (clog:create-element win "button" :class "header-btn" :text "↻"
+                                               :title "Refresh"
+                                               :onclick "location.reload()")))
                       (clog:create-element win "div" :class "search-box"
                         (clog:create-element win "input" :class "search-input"
                                              :type "text"
@@ -756,18 +909,53 @@
       (let* ((title (or (getf chat :title)
                         (getf chat :first-name)
                         "Unknown"))
+             (chat-type (getf chat :@type))
+             (is-group (or (eq chat-type :chatTypeGroup)
+                           (eq chat-type :chatTypeSuperGroup)
+                           (eq chat-type :chatTypeChannel)))
              (avatar-initials (subseq title 0 (min 2 (length title))))
-             (status "last seen recently"))
+             (status (if is-group
+                         (format nil "~A members" (or (getf chat :member-count) 0))
+                         "last seen recently")))
         ;; Replace chat area
         (let ((chat-area (clog:get-element-by-id win "chat-area")))
           (clog:clear! chat-area)
           (clog:append! chat-area
                         (clog:create-element win "div" :class "chat-header"
-                          (clog:create-element win "div" :class "chat-header-avatar"
-                                               :text avatar-initials)
-                          (clog:create-element win "div" :class "chat-header-info"
-                            (clog:create-element win "div" :class "chat-header-name" :text title)
-                            (clog:create-element win "div" :class "chat-header-status" :text status)))
+                          (clog:create-element win "div" :class "chat-header-left"
+                            (clog:create-element win "div" :class "chat-header-avatar"
+                                                 :text avatar-initials)
+                            (clog:create-element win "div" :class "chat-header-info"
+                              (clog:create-element win "div" :class "chat-header-name" :text title)
+                              (clog:create-element win "div" :class "chat-header-status" :text status)))
+                          (clog:create-element win "div" :class "chat-header-actions"
+                            ;; Group/Channel actions
+                            (when is-group
+                              (let ((info-btn (clog:create-element win "button"
+                                                                   :class "chat-action-btn"
+                                                                   :text "👥 Info")))
+                                (clog:on info-btn :click
+                                         (lambda (ev)
+                                           (declare (ignore ev))
+                                           (show-group-info-panel win chat-id)))
+                                info-btn)
+                              (let ((call-btn (clog:create-element win "button"
+                                                                   :class "chat-action-btn"
+                                                                   :text "📞 Group Call")))
+                                (clog:on call-btn :click
+                                         (lambda (ev)
+                                           (declare (ignore ev))
+                                           (start-group-call-ui win chat-id)))
+                                call-btn))
+                            ;; Media gallery button
+                            (let ((media-btn (clog:create-element win "button"
+                                                                  :class "chat-action-btn"
+                                                                  :text "🖼️")))
+                              (clog:on media-btn :click
+                                       (lambda (ev)
+                                         (declare (ignore ev))
+                                         (show-media-gallery-ui win chat-id)))
+                              media-btn)))
                         (clog:create-element win "div" :id "messages-container" :class "messages-container")
                         (clog:create-element win "div" :class "input-area"
                           (clog:create-element win "textarea"
@@ -834,6 +1022,50 @@
 
           ;; Reload messages
           (load-messages win *current-chat-id*))))))
+
+;;; ### Group Chat UI Functions
+
+(defun start-group-call-ui (win chat-id)
+  "Start a group call from UI.
+
+   Args:
+     win: CLOG window object
+     chat-id: Chat ID"
+  (handler-case
+      (let* ((group-call (cl-telegram/api:create-group-call chat-id :is-video-chat t))
+             (group-call-id (cl-telegram/api::group-call-id group-call)))
+        (when group-call-id
+          (show-group-call-panel win group-call-id)))
+    (error (e)
+      (format t "Error starting group call: ~A~%" e)
+      (clog:run-script win (format nil "alert('Failed to start group call: ~A');" e)))))
+
+(defun show-media-gallery-ui (win chat-id)
+  "Show media gallery for a chat.
+
+   Args:
+     win: CLOG window object
+     chat-id: Chat ID"
+  (let* ((overlay (clog:create-element win "div"
+                                       :class "media-gallery-overlay"
+                                       :style "position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); z-index: 10000;"))
+         (header (clog:create-element win "div"
+                                      :style "padding: 20px; display: flex; justify-content: space-between; align-items: center;"))
+         (content (clog:create-element win "div" :id "media-gallery-content"
+                                       :style "padding: 20px; overflow-y: auto; max-height: calc(100vh - 80px);")))
+    (clog:append! header
+                  (clog:create-element win "h2" :text "Media Gallery" :style "color: white;")
+                  (let ((close-btn (clog:create-element win "button"
+                                                        :style "background: transparent; border: none; color: white; font-size: 24px; cursor: pointer;")))
+                    (clog:on close-btn :click
+                             (lambda (ev)
+                               (declare (ignore ev))
+                               (clog:remove! overlay)))
+                    close-btn))
+    (clog:append! overlay header content)
+    (clog:append! (clog:body win) overlay)
+    ;; Render gallery
+    (cl-telegram/ui:render-media-gallery win chat-id content)))
 
 ;;; ### Utilities
 
