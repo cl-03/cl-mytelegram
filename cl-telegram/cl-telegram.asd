@@ -105,7 +105,8 @@
                (:file "database-tests")
                (:file "group-channel-tests")
                (:file "voip-tests")
-               (:file "integration-webrtc-tests")))
+               (:file "integration-webrtc-tests")
+               (:file "integration-telegram-tests")))
 
 ;; Documentation system
 (asdf:defsystem #:cl-telegram/docs
