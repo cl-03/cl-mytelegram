@@ -104,7 +104,8 @@
                (:file "secret-chat-tests")
                (:file "database-tests")
                (:file "group-channel-tests")
-               (:file "voip-tests")))
+               (:file "voip-tests")
+               (:file "integration-webrtc-tests")))
 
 ;; Documentation system
 (asdf:defsystem #:cl-telegram/docs
