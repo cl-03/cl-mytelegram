@@ -1007,4 +1007,40 @@
    #:validate-chat-id
    #:validate-user-id
    #:cleanup-old-cache
-   #:vacuum-all-caches))
+   #:vacuum-all-caches
+
+   ;; Object Pooling and Upload Management
+   #:*object-pools*
+   #:object-pool
+   #:make-object-pool
+   #:pool-acquire
+   #:pool-release
+   #:pool-initialize
+   #:byte-buffer
+   #:make-byte-buffer
+   #:reset-byte-buffer
+   #:ensure-buffer-capacity
+   #:upload-session
+   #:*active-uploads*
+   #:*upload-part-size*
+   #:*max-premium-file-size*
+   #:*max-free-file-size*
+   #:calculate-optimal-part-size
+   #:start-file-upload
+   #:upload-file-part
+   #:get-upload-progress
+   #:pause-upload
+   #:resume-upload
+   #:cancel-upload
+   #:cleanup-completed-uploads
+
+   ;; Stories Thumbnail Cache
+   #:*stories-thumbnail-cache*
+   #:*stories-thumbnail-max-size*
+   #:*current-thumbnail-cache-size*
+   #:story-thumbnail
+   #:cache-story-thumbnail
+   #:get-cached-story-thumbnail
+   #:evict-oldest-thumbnails
+   #:clear-story-thumbnail-cache
+   #:preload-stories-thumbnails))

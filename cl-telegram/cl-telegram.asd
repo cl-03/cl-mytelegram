@@ -76,6 +76,7 @@
                              (:file "voip")
                              (:file "webrtc-ffi")
                              (:file "performance-optimizations")
+                             (:file "performance-optimizations-v2")
                              (:file "stickers")
                              (:file "channels")
                              (:file "inline-bots")
