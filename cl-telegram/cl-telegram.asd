@@ -78,7 +78,8 @@
                              (:file "performance-optimizations")
                              (:file "stickers")
                              (:file "channels")
-                             (:file "inline-bots"))))
+                             (:file "inline-bots")
+                             (:file "message-threads"))))
 
                ;; UI layer
                (:module "ui"
