@@ -594,6 +594,26 @@
    #:apply-visual-effect-to-result
    #:get-enhanced-inline-features
 
+   ;; Inline Bot 2025 Extended (Bot API 9.1+)
+   #:make-inline-result-article-with-effects
+   #:make-inline-result-photo-with-effects
+   #:make-inline-result-video-with-effects
+   #:make-inline-result-gif-with-effects
+   #:send-inline-result-with-animation
+   #:get-inline-bot-analytics
+   #:set-inline-bot-business-location
+   #:set-inline-bot-business-hours
+   #:create-paid-media-post
+   #:answer-web-app-query
+   #:get-web-app-init-data
+   #:validate-web-app-init-data
+   #:send-business-message
+   #:edit-business-message
+   #:delete-business-message
+   #:get-business-connection-info
+   #:list-business-connections
+   #:close-business-connection
+
    ;; Message Replies & Threads
    #:message-reply
    #:message-thread

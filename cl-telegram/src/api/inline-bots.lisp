@@ -1064,3 +1064,268 @@
         :webapp-enhanced t
         :stories t
         :giveaways t))
+
+;;; ### Inline Bot 2025 Extended Functions (Bot API 9.1+)
+
+(defun make-inline-result-article-with-effects (id title input-message-content visual-effects &key (description nil) (url nil) (hide-url nil))
+  "Create article inline result with visual effects.
+
+   Args:
+     id: Unique result ID
+     title: Article title
+     input-message-content: InputMessageContent object
+     visual-effects: List of visual effects
+     description: Article description
+     url: Article URL
+     hide-url: Whether to hide link preview
+
+   Returns:
+     Inline-result-with-effects object"
+  (let ((base-result (make-inline-result-article id title input-message-content
+                                                 :description description
+                                                 :url url)))
+    (add-visual-effects-to-result base-result visual-effects)))
+
+(defun make-inline-result-photo-with-effects (id photo-url thumb-url visual-effects &key (title nil) (caption nil))
+  "Create photo inline result with visual effects.
+
+   Args:
+     id: Unique result ID
+     photo-url: URL of full-size photo
+     thumb-url: URL of thumbnail
+     visual-effects: List of visual effects
+     title: Photo title
+     caption: Photo caption
+
+   Returns:
+     Inline-result-with-effects object"
+  (let ((base-result (make-inline-result-photo id photo-url thumb-url
+                                               :title title
+                                               :caption caption)))
+    (add-visual-effects-to-result base-result visual-effects)))
+
+(defun make-inline-result-video-with-effects (id video-url thumb-url visual-effects &key (title nil) (caption nil) (duration nil))
+  "Create video inline result with visual effects.
+
+   Args:
+     id: Unique result ID
+     video-url: URL of video file
+     thumb-url: URL of thumbnail
+     visual-effects: List of visual effects
+     title: Video title
+     caption: Video caption
+     duration: Video duration in seconds
+
+   Returns:
+     Inline-result-with-effects object"
+  (let ((base-result (make-inline-result-video id video-url thumb-url
+                                               :title title
+                                               :caption caption)))
+    (declare (ignorable duration))
+    (add-visual-effects-to-result base-result visual-effects)))
+
+(defun make-inline-result-gif-with-effects (id gif-url thumb-url visual-effects &key (title nil))
+  "Create GIF inline result with visual effects.
+
+   Args:
+     id: Unique result ID
+     gif-url: URL of GIF file
+     thumb-url: URL of thumbnail
+     visual-effects: List of visual effects
+     title: Result title
+
+   Returns:
+     Inline-result-with-effects object"
+  (let ((base-result (make-inline-result-gif id gif-url thumb-url :title title)))
+    (add-visual-effects-to-result base-result visual-effects)))
+
+(defun send-inline-result-with-animation (chat-id result-with-effects &key (reply-to-message-id nil))
+  "Send inline result with animation to chat.
+
+   Args:
+     chat-id: Chat identifier
+     result-with-effects: Inline-result-with-effects object
+     reply-to-message-id: Message ID to reply to
+
+   Returns:
+     Message object on success"
+  (declare (ignorable chat-id result-with-effects reply-to-message-id))
+  ;; TODO: Implement API call with animation support
+  t)
+
+(defun get-inline-bot-analytics (bot-token &key (start-date nil) (end-date nil))
+  "Get inline bot analytics data.
+
+   Args:
+     bot-token: Bot API token
+     start-date: Start date for analytics
+     end-date: End date for analytics
+
+   Returns:
+     Analytics plist with :queries, :results, :clicks, :unique-users"
+  (declare (ignorable bot-token start-date end-date))
+  ;; TODO: Implement analytics API
+  (list :queries 0
+        :results 0
+        :clicks 0
+        :unique-users 0))
+
+(defun set-inline-bot-business-location (bot-token location)
+  "Set business location for inline bot.
+
+   Args:
+     bot-token: Bot API token
+     location: Business location object
+
+   Returns:
+     T on success"
+  (declare (ignorable bot-token location))
+  ;; TODO: Implement setBusinessLocation API
+  t)
+
+(defun set-inline-bot-business-hours (bot-token opening-hours)
+  "Set business hours for inline bot.
+
+   Args:
+     bot-token: Bot API token
+     opening-hours: Opening hours object
+
+   Returns:
+     T on success"
+  (declare (ignorable bot-token opening-hours))
+  ;; TODO: Implement setBusinessHours API
+  t)
+
+(defun create-paid-media-post (bot-token chat-id media-info &key (caption nil) (paid-amount nil))
+  "Create paid media post in channel.
+
+   Args:
+     bot-token: Bot API token
+     chat-id: Channel chat ID
+     media-info: Paid-media-info object
+     caption: Optional caption
+     paid-amount: Amount paid for media
+
+   Returns:
+     Message object on success"
+  (declare (ignorable bot-token chat-id media-info caption paid-amount))
+  ;; TODO: Implement paid media post API
+  nil)
+
+(defun answer-web-app-query (web-app-query-id results &key (button-id nil))
+  "Answer web app inline query.
+
+   Args:
+     web-app-query-id: Web app query ID from init data
+     results: List of inline results
+     button-id: ID of button that opened web app
+
+   Returns:
+     T on success"
+  (declare (ignorable web-app-query-id results button-id))
+  ;; TODO: Implement answerWebAppQuery API
+  t)
+
+(defun get-web-app-init-data ()
+  "Get web app initialization data.
+
+   Returns:
+     Web app init data plist with :user, :chat, :auth-hash"
+  ;; Web app init data is passed from frontend
+  ;; This function retrieves it from current context
+  (list :user nil
+        :chat nil
+        :auth-hash nil
+        :query-id nil))
+
+(defun validate-web-app-init-data (init-data)
+  "Validate web app initialization data.
+
+   Args:
+     init-data: Web app init data plist
+
+   Returns:
+     T if valid, NIL if invalid"
+  (declare (ignorable init-data))
+  ;; TODO: Implement validation with HMAC-SHA256
+  ;; Validate auth_hash against computed hash
+  t)
+
+(defun send-business-message (business-connection-id chat-id text &key (reply-to-message-id nil) (business-location nil))
+  "Send message on behalf of business.
+
+   Args:
+     business-connection-id: Business connection ID
+     chat-id: Chat identifier
+     text: Message text
+     reply-to-message-id: Message ID to reply to
+     business-location: Optional business location to include
+
+   Returns:
+     Message object on success"
+  (declare (ignorable business-connection-id chat-id text reply-to-message-id business-location))
+  ;; TODO: Implement sendMessage for business
+  t)
+
+(defun edit-business-message (business-connection-id chat-id message-id new-text)
+  "Edit message on behalf of business.
+
+   Args:
+     business-connection-id: Business connection ID
+     chat-id: Chat identifier
+     message-id: Message ID to edit
+     new-text: New message text
+
+   Returns:
+     T on success"
+  (declare (ignorable business-connection-id chat-id message-id new-text))
+  ;; TODO: Implement editMessageText for business
+  t)
+
+(defun delete-business-message (business-connection-id chat-id message-id)
+  "Delete message on behalf of business.
+
+   Args:
+     business-connection-id: Business connection ID
+     chat-id: Chat identifier
+     message-id: Message ID to delete
+
+   Returns:
+     T on success"
+  (declare (ignorable business-connection-id chat-id message-id))
+  ;; TODO: Implement deleteMessage for business
+  t)
+
+(defun get-business-connection-info (business-connection-id)
+  "Get detailed business connection information.
+
+   Args:
+     business-connection-id: Business connection ID
+
+   Returns:
+     Business connection info plist"
+  (let ((conn (get-business-connection business-connection-id)))
+    (append conn
+            (list :can-reply (getf conn :can-reply t)
+                  :can-edit (getf conn :can-edit t)
+                  :can-delete (getf conn :can-delete t)))))
+
+(defun list-business-connections ()
+  "List all active business connections.
+
+   Returns:
+     List of business connection plists"
+  ;; TODO: Implement listBusinessConnections API
+  nil)
+
+(defun close-business-connection (business-connection-id)
+  "Close a business connection.
+
+   Args:
+     business-connection-id: Business connection ID
+
+   Returns:
+     T on success"
+  (declare (ignorable business-connection-id))
+  ;; TODO: Implement closeBusinessConnection API
+  t)
