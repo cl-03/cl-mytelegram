@@ -73,7 +73,9 @@
                              (:file "update-handler")
                              (:file "secret-chat")
                              (:file "database")
-                             (:file "voip"))))
+                             (:file "voip")
+                             (:file "webrtc-ffi")
+                             (:file "performance-optimizations"))))
 
                ;; UI layer
                (:module "ui"
