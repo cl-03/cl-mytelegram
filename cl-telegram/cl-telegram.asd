@@ -82,6 +82,7 @@
                              (:file "message-threads")
                              (:file "voice-messages")
                              (:file "stories")
+                             (:file "premium")
                              (:file "optimizations-v2"))))
 
                ;; UI layer

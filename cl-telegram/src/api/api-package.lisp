@@ -776,6 +776,69 @@
    #:clear-stories-cache
    #:clear-highlights-cache
 
+   ;; Telegram Premium
+   #:premium-status
+   #:premium-features-config
+   #:*premium-status*
+   #:*premium-features-config*
+   #:*premium-cache-ttl*
+   #:*premium-last-check*
+   #:premium-is-premium
+   #:premium-expiration-date
+   #:premium-subscription-type
+   #:premium-can-send-large-files
+   #:premium-can-use-premium-stickers
+   #:premium-max-file-size
+   #:premium-max-download-speed
+   #:premium-double-limits
+   #:config-premium-sticker-sets
+   #:config-premium-reactions
+   #:config-premium-emoji-statuses
+   #:config-premium-profile-colors
+   #:config-premium-chat-themes
+   #:config-premium-transcription-hours
+   #:check-premium-status
+   #:refresh-premium-status
+   #:get-premium-status-from-server
+   #:verify-premium-status
+   #:premium-required-p
+   #:ensure-premium
+   #:premium-required-error
+   #:premium-error-feature
+   #:premium-error-message
+   #:get-max-file-size
+   #:can-upload-file-p
+   #:validate-file-for-upload
+   #:get-premium-sticker-sets
+   #:fetch-premium-sticker-sets
+   #:can-use-premium-sticker-p
+   #:get-premium-reactions
+   #:fetch-premium-reactions
+   #:can-send-reaction-p
+   #:get-premium-profile-colors
+   #:fetch-premium-profile-colors
+   #:get-premium-chat-themes
+   #:fetch-premium-chat-themes
+   #:set-profile-color
+   #:set-chat-theme
+   #:get-premium-emoji-statuses
+   #:fetch-premium-emoji-statuses
+   #:set-emoji-status
+   #:clear-emoji-status
+   #:get-premium-transcription-hours
+   #:transcribe-voice-message-premium
+   #:get-doubled-limits
+   #:can-pin-more-chats-p
+   #:can-join-more-channels-p
+   #:render-premium-badge
+   #:render-premium-features-panel
+   #:show-premium-promo
+   #:get-premium-stats
+   #:reset-premium-cache
+   #:get-premium-subscription-info
+   #:cancel-premium-subscription
+   #:renew-premium-subscription
+
    ;; Performance Optimizations v2
    #:batch-get-users-no-cons
    #:batch-insert-messages-no-cons
