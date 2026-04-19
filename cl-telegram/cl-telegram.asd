@@ -79,7 +79,8 @@
                              (:file "stickers")
                              (:file "channels")
                              (:file "inline-bots")
-                             (:file "message-threads"))))
+                             (:file "message-threads")
+                             (:file "voice-messages"))))
 
                ;; UI layer
                (:module "ui"
