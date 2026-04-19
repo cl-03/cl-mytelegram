@@ -80,7 +80,8 @@
                              (:file "channels")
                              (:file "inline-bots")
                              (:file "message-threads")
-                             (:file "voice-messages"))))
+                             (:file "voice-messages")
+                             (:file "optimizations-v2"))))
 
                ;; UI layer
                (:module "ui"

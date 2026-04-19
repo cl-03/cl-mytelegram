@@ -696,4 +696,47 @@
    #:voice-message-duration-string
    #:waveform-to-ascii
    #:clear-voice-cache
-   #:get-available-voice-devices))
+   #:get-available-voice-devices
+
+   ;; Performance Optimizations v2
+   #:batch-get-users-no-cons
+   #:batch-insert-messages-no-cons
+   #:format-chat-id-fast
+   #:concat-strings-fast
+   #:keyword-from-string-fast
+   #:*cache-locks*
+   #:*cache-lock-global*
+   #:with-cache-lock
+   #:safe-get-cache
+   #:safe-set-cache
+   #:safe-remove-cache
+   #:ensure-database-connection
+   #:with-database-transaction
+   #:write-uint32-le
+   #:write-uint64-le
+   #:read-uint32-le
+   #:read-uint64-le
+   #:make-message-plist
+   #:filter-messages-by-date
+   #:sort-messages-by-date
+   #:*connection-pool-stats*
+   #:record-connection-stats
+   #:get-connection-pool-stats
+   #:reset-connection-pool-stats
+   #:telegram-error
+   #:telegram-auth-error
+   #:telegram-network-error
+   #:telegram-database-error
+   #:telegram-error-code
+   #:telegram-error-message
+   #:handle-telegram-error
+   #:safe-api-call
+   #:time-operation
+   #:get-memory-usage
+   #:truncate-text
+   #:normalize-phone-number
+   #:fix-message-entities
+   #:validate-chat-id
+   #:validate-user-id
+   #:cleanup-old-cache
+   #:vacuum-all-caches))
