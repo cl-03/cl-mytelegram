@@ -113,7 +113,8 @@
                (:file "group-channel-tests")
                (:file "voip-tests")
                (:file "integration-webrtc-tests")
-               (:file "integration-telegram-tests")))
+               (:file "integration-telegram-tests")
+               (:file "stickers-channels-tests")))
 
 ;; Documentation system
 (asdf:defsystem #:cl-telegram/docs
