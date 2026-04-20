@@ -994,6 +994,10 @@
    #:get-business-connection-info
    #:list-business-connections
    #:close-business-connection
+   #:set-my-short-description
+   #:get-my-short-description
+   #:set-my-name
+   #:get-my-name
 
    ;; File Management
    #:file-location

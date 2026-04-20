@@ -1729,3 +1729,115 @@
     (t (e)
       (log-error "Unexpected error in close-business-connection: ~a" e)
       nil)))
+
+;;; ### Bot Settings (Bot API 9.0+)
+
+(defun set-my-short-description (short-description &key (language-code nil) (business-connection-id nil))
+  "Set the bot's short description for use with inline mode.
+
+   SHORT-DESCRIPTION: New short description (0-120 characters)
+   LANGUAGE-CODE: Optional two-letter language code for localized description
+   BUSINESS-CONNECTION-ID: Optional business connection ID for business bots
+
+   Returns:
+     T on success, NIL on failure
+
+   Example:
+     (set-my-short-description \"Helpful assistant bot\")
+     (set-my-short-description \"助理机器人\" :language-code \"zh\")"
+  (handler-case
+      (let* ((connection (get-connection))
+             (params `(("short_description" . ,short-description))))
+        ;; Add optional parameters
+        (when language-code
+          (push (cons "language_code" language-code) params))
+        (when business-connection-id
+          (push (cons "business_connection_id" business-connection-id) params))
+
+        (let ((result (make-api-call connection "setMyShortDescription" params)))
+          (if result
+              (progn
+                (log-message :info "Bot short description set successfully~@[ (language: ~A)~]" language-code)
+                t)
+              nil)))
+    (error (e)
+      (log-message :error "Error setting short description: ~A" (princ-to-string e))
+      nil)))
+
+(defun get-my-short-description (&key (language-code nil))
+  "Get the bot's current short description.
+
+   LANGUAGE-CODE: Optional two-letter language code for localized description
+
+   Returns:
+     Short description string on success, NIL on failure
+
+   Example:
+     (get-my-short-description)
+     (get-my-short-description :language-code \"en\")"
+  (handler-case
+      (let* ((connection (get-connection))
+             (params nil))
+        (when language-code
+          (push (cons "language_code" language-code) params))
+
+        (let ((result (make-api-call connection "getMyShortDescription" params)))
+          (if result
+              (getf result :short_description)
+              nil)))
+    (error (e)
+      (log-message :error "Error getting short description: ~A" (princ-to-string e))
+      nil)))
+
+(defun set-my-name (name &key (language-code nil))
+  "Set the bot's name.
+
+   NAME: New bot name (0-64 characters)
+   LANGUAGE-CODE: Optional two-letter language code for localized name
+
+   Returns:
+     T on success, NIL on failure
+
+   Example:
+     (set-my-name \"Helper Bot\")
+     (set-my-name \"助手\" :language-code \"zh\")"
+  (handler-case
+      (let* ((connection (get-connection))
+             (params `(("name" . ,name))))
+        (when language-code
+          (push (cons "language_code" language-code) params))
+
+        (let ((result (make-api-call connection "setMyName" params)))
+          (if result
+              (progn
+                (log-message :info "Bot name set successfully~@[ (language: ~A)~]" language-code)
+                t)
+              nil)))
+    (error (e)
+      (log-message :error "Error setting bot name: ~A" (princ-to-string e))
+      nil)))
+
+(defun get-my-name (&key (language-code nil))
+  "Get the bot's current name.
+
+   LANGUAGE-CODE: Optional two-letter language code for localized name
+
+   Returns:
+     Bot name string on success, NIL on failure
+
+   Example:
+     (get-my-name)
+     (get-my-name :language-code \"en\")"
+  (handler-case
+      (let* ((connection (get-connection))
+             (params nil))
+        (when language-code
+          (push (cons "language_code" language-code) params))
+
+        (let ((result (make-api-call connection "getMyName" params)))
+          (if result
+              (getf result :name)
+              nil)))
+    (error (e)
+      (log-message :error "Error getting bot name: ~A" (princ-to-string e))
+      nil)))
