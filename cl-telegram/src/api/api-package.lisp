@@ -1085,10 +1085,16 @@
    #:invoice
    #:star-transaction
    #:star-balance
+   #:shipping-option
+   #:shipping-query
+   #:pre-checkout-query
    #:make-labeled-price
    #:make-invoice
+   #:make-shipping-option
    #:send-invoice
    #:create-invoice-link
+   #:answer-shipping-query
+   #:answer-pre-checkout-query
    #:refund-star-payment
    #:gift-premium-subscription
    #:get-business-account-star-balance

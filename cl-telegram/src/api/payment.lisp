@@ -426,6 +426,122 @@
                   :photo-url photo-url)))
 
 ;;; ======================================================================
+;;; Shipping and Pre-Checkout Query Responses
+;;; ======================================================================
+
+(defclass shipping-option ()
+  ((id :initarg :id :accessor shipping-option-id
+       :initform "" :documentation "Shipping option ID")
+   (title :initarg :title :accessor shipping-option-title
+          :initform "" :documentation "Shipping option title")
+   (prices :initarg :prices :accessor shipping-option-prices
+           :initform nil :documentation "List of labeled-price objects")))
+
+(defclass shipping-query ()
+  ((id :initarg :id :accessor shipping-query-id
+       :initform "" :documentation "Unique query identifier")
+   (from :initarg :from :accessor shipping-query-from
+         :initform nil :documentation "User who sent the query")
+   (invoice-payload :initarg :invoice-payload :accessor shipping-query-invoice-payload
+                    :initform "" :documentation "Invoice payload")
+   (shipping-address :initarg :shipping-address :accessor shipping-query-shipping-address
+                      :initform nil :documentation "User shipping address")))
+
+(defclass pre-checkout-query ()
+  ((id :initarg :id :accessor pre-checkout-query-id
+       :initform "" :documentation "Unique query identifier")
+   (from :initarg :from :accessor pre-checkout-query-from
+         :initform nil :documentation "User who sent the query")
+   (currency :initarg :currency :accessor pre-checkout-query-currency
+             :initform "" :documentation "Three-letter ISO currency code")
+   (total-amount :initarg :total-amount :accessor pre-checkout-query-total-amount
+                 :initform 0 :documentation "Total amount in smallest currency units")
+   (invoice-payload :initarg :invoice-payload :accessor pre-checkout-query-invoice-payload
+                    :initform "" :documentation "Invoice payload")
+   (shipping-option-id :initarg :shipping-option-id :accessor pre-checkout-query-shipping-option-id
+                       :initform nil :documentation "Shipping option ID")
+   (order-info :initarg :order-info :accessor pre-checkout-query-order-info
+               :initform nil :documentation "Order info provided by user")))
+
+(defun make-shipping-option (id title prices)
+  "Create a shipping option object.
+
+   ID: Unique shipping option identifier
+   TITLE: Shipping option title
+   PRICES: List of labeled-price objects for this option
+
+   Returns a shipping-option object."
+  (make-instance 'shipping-option :id id :title title :prices prices))
+
+(defun answer-shipping-query (shipping-query-id ok &key shipping-options error-message)
+  "Reply to a shipping query.
+
+   SHIPPING-QUERY-ID: Unique identifier of the shipping query
+   OK: Specify True if delivery to the specified address is possible
+   SHIPPING-OPTIONS: List of shipping-option objects (required if OK is True)
+   ERROR-MESSAGE: Error message explaining why delivery is not possible (required if OK is False)
+
+   Returns T on success, NIL on failure."
+  (handler-case
+      (let* ((connection (get-current-connection))
+             (params `(("shipping_query_id" . ,shipping-query-id)
+                       ("ok" . ,(if ok "true" "false")))))
+        ;; Add shipping options or error message
+        (when (and ok shipping-options)
+          (let ((options-json
+                 (loop for option in shipping-options
+                       collect
+                       (let ((prices-json
+                              (loop for price in (shipping-option-prices option)
+                                    collect `(:label ,(labeled-price-label price)
+                                             :amount ,(labeled-price-amount price)))))
+                         `(:id ,(shipping-option-id option)
+                           :title ,(shipping-option-title option)
+                           :prices ,prices-json)))))
+            (push (cons "shipping_options" (json:encode-to-string options-json)) params)))
+        (when (and (not ok) error-message)
+          (push (cons "error_message" error-message) params))
+
+        (let ((result (make-api-call connection "answerShippingQuery" params)))
+          (if result
+              (progn
+                (log-message :info "Shipping query ~A answered successfully" shipping-query-id)
+                t)
+              nil)))
+    (error (e)
+      (log-message :error "Error answering shipping query: ~A" (princ-to-string e))
+      nil)))
+
+(defun answer-pre-checkout-query (pre-checkout-query-id ok &key error-message)
+  "Reply to a pre-checkout query.
+
+   PRE-CHECKOUT-QUERY-ID: Unique identifier of the pre-checkout query
+   OK: Specify True if everything is alright (goods are available, etc.)
+   ERROR-MESSAGE: Error message explaining why the pre-checkout failed (required if OK is False)
+
+   Returns T on success, NIL on failure.
+
+   Note: Bots must respond to pre-checkout queries within 10 seconds,
+   otherwise the transaction is automatically declined by Telegram."
+  (handler-case
+      (let* ((connection (get-current-connection))
+             (params `(("pre_checkout_query_id" . ,pre-checkout-query-id)
+                       ("ok" . ,(if ok "true" "false")))))
+        ;; Add error message if not OK
+        (when (and (not ok) error-message)
+          (push (cons "error_message" error-message) params))
+
+        (let ((result (make-api-call connection "answerPreCheckoutQuery" params)))
+          (if result
+              (progn
+                (log-message :info "Pre-checkout query ~A answered successfully" pre-checkout-query-id)
+                t)
+              nil)))
+    (error (e)
+      (log-message :error "Error answering pre-checkout query: ~A" (princ-to-string e))
+      nil)))
+
+;;; ======================================================================
 ;;; Global State
 ;;; ======================================================================
 

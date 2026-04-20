@@ -189,6 +189,7 @@
                (:file "file-management-tests")
                (:file "file-management-enhanced-tests")
                (:file "payment-stars-tests")
+               (:file "payment-enhanced-tests")
                (:file "account-security-enhanced-tests")
                (:file "drafts-scheduled-tests")
                (:file "account-security-tests")
