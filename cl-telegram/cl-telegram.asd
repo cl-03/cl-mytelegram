@@ -218,6 +218,7 @@
                (:file "bot-api-9-8-tests")
                (:file "stories-complete-tests")
                (:file "inline-bots-enhanced-tests")
+               (:file "stickers-enhanced-tests")
                (:file "chat-folders-tests")
                (:file "notifications-v0.32-tests")
                (:file "telegram-business-tests")

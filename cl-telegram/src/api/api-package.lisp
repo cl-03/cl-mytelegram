@@ -723,6 +723,12 @@
    #:get-sticker-from-message
    #:send-custom-emoji
    #:get-custom-emoji
+   #:set-sticker-position-in-set
+   #:delete-sticker-from-set
+   #:set-sticker-emoji-list
+   #:set-sticker-set-thumbnail
+   #:set-custom-emoji-sticker-set-thumbnail
+   #:get-custom-emoji-stickers
 
    ;; Channels & Broadcast
    #:channel

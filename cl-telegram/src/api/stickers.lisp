@@ -723,3 +723,164 @@
      T on success"
   (clrhash *sticker-cache*)
   t)
+
+;;; ### Sticker Management (Bot API 9.0+)
+
+(defun set-sticker-position-in-set (sticker-file-id position)
+  "Set the position of a sticker in a sticker set.
+
+   STICKER-FILE-ID: File ID of the sticker to reposition
+   POSITION: New position (0-based index)
+
+   Returns:
+     T on success, NIL on failure
+
+   Example:
+     (set-sticker-position-in-set \"CAADAgADQAAD7gkSAACQl7Z0ZcJdFgQ\" 0)"
+  (handler-case
+      (let* ((connection (get-current-connection))
+             (params `(("sticker" . ,sticker-file-id)
+                       ("position" . ,position))))
+        (let ((result (make-api-call connection "setStickerPositionInSet" params)))
+          (if result
+              (progn
+                (log-message :info "Sticker position set to ~A" position)
+                t)
+              nil)))
+    (error (e)
+      (log-message :error "Error setting sticker position: ~A" (princ-to-string e))
+      nil)))
+
+(defun delete-sticker-from-set (sticker-file-id)
+  "Delete a sticker from a sticker set.
+
+   STICKER-FILE-ID: File ID of the sticker to delete
+
+   Returns:
+     T on success, NIL on failure
+
+   Example:
+     (delete-sticker-from-set \"CAADAgADQAAD7gkSAACQl7Z0ZcJdFgQ\")"
+  (handler-case
+      (let* ((connection (get-current-connection))
+             (params `(("sticker" . ,sticker-file-id))))
+        (let ((result (make-api-call connection "deleteStickerFromSet" params)))
+          (if result
+              (progn
+                (log-message :info "Sticker deleted from set")
+                t)
+              nil)))
+    (error (e)
+      (log-message :error "Error deleting sticker from set: ~A" (princ-to-string e))
+      nil)))
+
+(defun set-sticker-emoji-list (sticker-file-id emoji-list)
+  "Set the list of emoji associated with a sticker.
+
+   STICKER-FILE-ID: File ID of the sticker
+   EMOJI-LIST: List of emoji strings (1-20 emoji)
+
+   Returns:
+     T on success, NIL on failure
+
+   Example:
+     (set-sticker-emoji-list \"CAADAgADQAAD7gkSAACQl7Z0ZcJdFgQ\" '(\"😀\" \"😁\" \"😂\"))"
+  (handler-case
+      (let* ((connection (get-current-connection))
+             (params `(("sticker" . ,sticker-file-id)
+                       ("emoji_list" . ,(json:encode-to-string emoji-list)))))
+        (let ((result (make-api-call connection "setStickerEmojiList" params)))
+          (if result
+              (progn
+                (log-message :info "Sticker emoji list updated with ~A emoji" (length emoji-list))
+                t)
+              nil)))
+    (error (e)
+      (log-message :error "Error setting sticker emoji list: ~A" (princ-to-string e))
+      nil)))
+
+(defun set-sticker-set-thumbnail (name user-id &key (thumbnail-file-id nil))
+  "Set a sticker set thumbnail.
+
+   NAME: Sticker set name
+   USER-ID: User ID of the sticker set owner
+   THUMBNAIL-FILE-ID: Optional file ID for the thumbnail (PNG or WEBM for video sets)
+
+   Returns:
+     T on success, NIL on failure
+
+   Example:
+     (set-sticker-set-thumbnail \"MyStickerSet\" 123456 :thumbnail-file-id \"file_id\")"
+  (handler-case
+      (let* ((connection (get-current-connection))
+             (params `(("name" . ,name)
+                       ("user_id" . ,user-id))))
+        (when thumbnail-file-id
+          (push (cons "thumbnail" thumbnail-file-id) params))
+        (let ((result (make-api-call connection "setStickerSetThumbnail" params)))
+          (if result
+              (progn
+                (log-message :info "Sticker set thumbnail updated")
+                t)
+              nil)))
+    (error (e)
+      (log-message :error "Error setting sticker set thumbnail: ~A" (princ-to-string e))
+      nil)))
+
+(defun set-custom-emoji-sticker-set-thumbnail (sticker-set-name &key (custom-emoji-id nil))
+  "Set a custom emoji sticker set thumbnail.
+
+   STICKER-SET-NAME: Name of the sticker set
+   CUSTOM-EMOJI-ID: Optional custom emoji ID to use as thumbnail
+
+   Returns:
+     T on success, NIL on failure
+
+   Example:
+     (set-custom-emoji-sticker-set-thumbnail \"EmojiSet\" :custom-emoji-id \"emoji_id\")"
+  (handler-case
+      (let* ((connection (get-current-connection))
+             (params `(("sticker_set_name" . ,sticker-set-name))))
+        (when custom-emoji-id
+          (push (cons "custom_emoji_id" custom-emoji-id) params))
+        (let ((result (make-api-call connection "setCustomEmojiStickerSetThumbnail" params)))
+          (if result
+              (progn
+                (log-message :info "Custom emoji sticker set thumbnail updated")
+                t)
+              nil)))
+    (error (e)
+      (log-message :error "Error setting custom emoji sticker set thumbnail: ~A" (princ-to-string e))
+      nil)))
+
+(defun get-custom-emoji-stickers (custom-emoji-ids)
+  "Get information about custom emoji stickers.
+
+   CUSTOM-EMOJI-IDS: List of custom emoji IDs
+
+   Returns:
+     List of sticker objects on success, NIL on failure
+
+   Example:
+     (get-custom-emoji-stickers '(\"emoji_id_1\" \"emoji_id_2\"))"
+  (handler-case
+      (let* ((connection (get-current-connection))
+             (params `(("custom_emoji_ids" . ,(json:encode-to-string custom-emoji-ids)))))
+        (let ((result (make-api-call connection "getCustomEmojiStickers" params)))
+          (if result
+              (let ((stickers (getf result :stickers)))
+                (mapcar (lambda (sticker-data)
+                          (make-instance 'sticker
+                                         :file-id (getf sticker-data :file-id)
+                                         :file-unique-id (getf sticker-data :file-unique-id)
+                                         :width (getf sticker-data :width)
+                                         :height (getf sticker-data :height)
+                                         :is-animated (getf sticker-data :is-animated)
+                                         :is-video (getf sticker-data :is-video)
+                                         :emoji (getf sticker-data :emoji)
+                                         :set-name (getf sticker-data :set-name)))
+                        stickers))
+              nil)))
+    (error (e)
+      (log-message :error "Error getting custom emoji stickers: ~A" (princ-to-string e))
+      nil)))
