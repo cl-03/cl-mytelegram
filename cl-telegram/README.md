@@ -4,9 +4,52 @@ A pure Common Lisp Telegram client implementation using MTProto 2.0 protocol.
 
 ## Status
 
-**Release v0.32.0** - Message Streaming, Bot API 9.5-9.6, Chat Folders Enhanced, Notifications v2.0.
+**Release v0.33.0** - Telegram Business API, Chat Backgrounds, Bot API 9.8 Support.
 
-**Next: v0.33.0** - Stories API Complete, Telegram Business, Bot API 9.8+ (In Development)
+**Next: v0.34.0** - Bot API 9.9+ tracking (Planned)
+
+---
+
+## What's New in v0.33.0
+
+### Telegram Business API
+
+Complete business account management system:
+
+- **Business Accounts** - Create, configure, and manage business profiles
+- **Business Greeting** - Automated welcome messages for customers
+- **Auto-Reply** - Keyword-based automatic responses with delay control
+- **Message Labels** - Tag and organize messages (VIP, Important, etc.)
+- **Business Chats** - Manage customer conversations with status tracking
+- **Statistics** - Business performance analytics and insights
+
+### Chat Backgrounds Enhanced
+
+Customizable chat backgrounds:
+
+- **Gradient Backgrounds** - Multi-color gradients with angle control
+- **Solid Backgrounds** - Single color backgrounds
+- **Pattern Backgrounds** - Custom patterns (stripes, dots, etc.)
+- **Per-Chat Settings** - Individual background per chat
+- **Custom Settings** - Opacity, blur, and other effects
+- **Preview & Stats** - Background preview and usage statistics
+
+### Bot API 9.8 Support
+
+Latest Bot API features:
+
+- **Managed Bots** - Create and manage bots programmatically
+- **Business Connections** - Link bots to business accounts
+- **Enhanced Polls 2.0** - Full poll support with descriptions, timing, quiz mode
+- **DateTime Entities** - Parse and format datetime in messages
+- **Member Tags Enhanced** - Advanced tagging with color customization
+
+### Code Statistics v0.33.0
+
+- **New Source Files**: 3 (~1,550 lines)
+- **New Test Files**: 3 (~560 lines)
+- **New API Functions**: 79+
+- **Total Coverage**: ~95%+ Bot API coverage
 
 ---
 
