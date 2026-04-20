@@ -17,10 +17,9 @@
                :jonathan
                :cl-ppcre
                :clog
-               :cl-sqlite
+               :dbi
                :opticl
-               :cl-log
-               :trivial-2d-array)
+               :cl-log)
   :serial t
   :pathname "src/"
   :components ((:file "package")
