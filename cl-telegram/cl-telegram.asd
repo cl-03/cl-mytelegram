@@ -118,7 +118,10 @@
                              (:file "chat-backup")
                              (:file "global-search")
                              (:file "media-library")
-                             (:file "custom-themes")))
+                             (:file "custom-themes")
+                             (:file "file-management-enhanced")
+                             (:file "payment-stars")
+                             (:file "account-security-enhanced")))
                ;; UI layer
                (:module "ui"
                 :serial t
@@ -180,6 +183,9 @@
                (:file "mobile-tests")
                (:file "voice-messages-tests")
                (:file "file-management-tests")
+               (:file "file-management-enhanced-tests")
+               (:file "payment-stars-tests")
+               (:file "account-security-enhanced-tests")
                (:file "drafts-scheduled-tests")
                (:file "account-security-tests")
                (:file "payment-business-tests")

@@ -2181,4 +2181,84 @@
    #:get-performance-stats
    #:clear-performance-cache
    #:initialize-performance-optimizations-v4
-   #:shutdown-performance-optimizations-v4))
+   #:shutdown-performance-optimizations-v4
+
+   ;; File Management Enhanced (v0.31.0)
+   #:make-upload-session
+   #:upload-file-chunk
+   #:get-upload-status
+   #:cancel-upload-session
+   #:complete-upload-session
+   #:make-download-session
+   #:download-file-chunk
+   #:resume-download
+   #:pause-download
+   #:get-media-metadata
+   #:extract-video-thumbnail
+   #:get-file-info
+   #:initialize-file-cache
+   #:get-cache-entry
+   #:cache-file
+   #:get-cached-file
+   #:clear-file-cache
+   #:get-file-cache-stats
+   #:get-active-uploads-stats
+   #:get-active-downloads-stats
+   #:get-performance-file-stats
+   #:cleanup-stale-sessions
+   #:initialize-file-management-enhanced
+   #:shutdown-file-management-enhanced
+   #:*max-concurrent-uploads*
+   #:*max-concurrent-downloads*
+   #:*default-chunk-size*
+
+   ;; Payment and Stars Enhanced (v0.31.0)
+   #:create-star-invoice
+   #:send-star-invoice
+   #:get-invoice-status
+   #:process-star-payment
+   #:get-star-balance
+   #:send-star-payment
+   #:get-star-transactions
+   #:refund-star-payment
+   #:make-paid-media-info
+   #:send-paid-media
+   #:get-paid-media-post
+   #:create-star-giveaway
+   #:join-giveaway
+   #:select-giveaway-winners
+   #:get-giveaway-status
+   #:convert-star-gift
+   #:get-payment-stats
+   #:get-giveaway-stats
+   #:initialize-payment-stars
+   #:shutdown-payment-stars
+   #:*star-invoices*
+   #:*star-payments*
+   #:*star-giveaways*
+
+   ;; Account Security Enhanced (v0.31.0)
+   #:generate-qr-login-token
+   #:get-qr-code-image
+   #:check-qr-login-status
+   #:import-qr-login-token
+   #:accept-qr-login-token
+   #:get-2fa-status
+   #:enable-two-factor-auth
+   #:disable-two-factor-auth
+   #:change-two-factor-password
+   #:verify-two-factor-auth
+   #:get-active-sessions
+   #:terminate-session
+   #:terminate-all-sessions
+   #:get-privacy-settings
+   #:set-privacy-setting
+   #:get-privacy-visibility
+   #:get-current-phone-number
+   #:change-phone-number
+   #:confirm-phone-number
+   #:get-security-stats
+   #:initialize-account-security-enhanced
+   #:shutdown-account-security-enhanced
+   #:*qr-login-tokens*
+   #:*2fa-info*))
