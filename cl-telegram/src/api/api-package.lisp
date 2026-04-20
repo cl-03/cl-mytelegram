@@ -2076,6 +2076,12 @@
    #:release-media-stream
    #:get-device-permissions
    #:check-device-support
+   #:initialize-mini-app
+   #:shutdown-mini-app
+   #:get-mini-app-stats
+   #:clear-mini-app-cache
+   #:create-mini-app-button
+   #:show-mini-app-alert
 
    ;; Bot API 9.6 - Mini App Theme
    #:mini-app-theme
@@ -2089,6 +2095,7 @@
    #:mini-app-is-dark
    #:get-mini-app-theme
    #:sync-with-client-theme
+   #:apply-theme-to-clog
    #:apply-theme-parameters
    #:on-theme-change
    #:get-theme-parameters

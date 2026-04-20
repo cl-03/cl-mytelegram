@@ -4,47 +4,58 @@ A pure Common Lisp Telegram client implementation using MTProto 2.0 protocol.
 
 ## Status
 
-**Release v0.28.0** - Complete with Bot API 9.4-9.6 support, Custom Emoji Messages, DateTime Entity, Managed Bots, Mini App Device Access, and Theme Integration.
+**Release v0.29.0** - Complete with Mini App CLOG Integration, Bot API 9.4-9.6 support, Custom Emoji Messages, DateTime Entity, Managed Bots, and full Device Access.
 
-## What's New in v0.28.0
+## What's New in v0.29.0
 
-### Bot API 9.4-9.6 Support
+### Mini App CLOG Integration (Bot API 9.6)
 
-Complete implementation of latest Telegram Bot API features:
+Complete working implementation of Mini App device access using CLOG Web UI:
 
-#### Custom Emoji Messages (9.4)
-- Send custom emoji stickers in chats
-- Create and manage emoji packs
-- Browse available emoji collections
-- Animated emoji support
+#### Device Access
+- **Camera Access** - Request and use device camera via browser getUserMedia API
+- **Microphone Access** - Request and use device microphone
+- **Photo Capture** - Capture photos with configurable quality (low/medium/high)
+- **Video Capture** - Record videos with MediaRecorder API
+- **Media Streams** - Get and release media streams with proper cleanup
+- **Permission Management** - Query and track device permissions
+- **Feature Detection** - Check device support for camera, microphone, location, contacts
 
-#### DateTime Entity (9.5)
-- Formatted date/time display in messages
-- Multiple format support (ISO8601, RFC2822, human-readable)
-- Timezone-aware datetime handling
-- Parse and convert datetime entities
+#### Theme Integration
+- **Client Sync** - Automatically sync with Telegram WebApp theme
+- **Apply Theme** - Apply theme parameters to CLOG window
+- **Theme Events** - Handle theme change events
+- **Custom Themes** - Override with custom theme parameters
 
-#### Managed Bots (9.5)
-- Organization-level bot management
-- Secure token rotation
-- Token change notifications and history
-- Event handlers for credential changes
+#### Mini App UI
+- **Buttons** - Create styled buttons with click handlers
+- **Alerts** - Show alert dialogs to users
+- **Stats** - Monitor connection and resource usage
 
-#### Mini App Device Access (9.6)
-- Camera access for photo/video capture
-- Microphone access for audio recording
-- Media stream management
-- Device permission management
+### Code Example
 
-#### Mini App Theme Integration (9.6)
-- Sync with Telegram client themes
-- Custom theme parameters
-- Theme change event handling
-- Dark/light mode support
+```lisp
+;; Initialize Mini App server
+(cl-telegram/api:initialize-mini-app 8080)
+
+;; Request camera access
+(when (cl-telegram/api:request-camera-access)
+  ;; Capture a photo
+  (let ((photo (cl-telegram/api:capture-photo :quality :high)))
+    (when photo
+      (format t "Captured photo: ~D bytes~%" (length photo)))))
+
+;; Sync theme
+(let ((theme (cl-telegram/api:sync-with-client-theme)))
+  (format t "Dark mode: ~A~%" (cl-telegram/api:mini-app-is-dark theme)))
+
+;; Cleanup
+(cl-telegram/api:shutdown-mini-app)
+```
 
 ---
 
-## What's New in v0.27.0
+## What's New in v0.28.0
 
 ### Auto-Delete Messages
 
