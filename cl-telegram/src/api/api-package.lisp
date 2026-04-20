@@ -2099,4 +2099,44 @@
    #:apply-theme-parameters
    #:on-theme-change
    #:get-theme-parameters
-   #:set-theme-override))
+   #:set-theme-override
+
+   ;; Bot API 9.7 - Location API
+   #:request-location-access
+   #:get-current-location
+   #:watch-position
+   #:clear-position-watch
+
+   ;; Bot API 9.7 - File Picker
+   #:select-files
+   #:select-directory
+   #:read-file-content
+
+   ;; Bot API 9.7 - Notification API
+   #:request-notification-permission
+   #:get-notification-permission
+   #:send-notification
+   #:on-notification-click
+   #:close-notification
+
+   ;; Bot API 9.7 - Stats and Cleanup
+   #:get-bot-api-9-7-stats
+   #:clear-location-cache
+   #:clear-notification-cache
+   #:initialize-bot-api-9-7
+
+   ;; Bot API 9.7+ - Mini App Enhanced (Haptic, Clipboard, Share)
+   #:haptic-feedback-impact
+   #:haptic-feedback-notification
+   #:haptic-feedback-selection-change
+   #:read-clipboard-text
+   #:write-clipboard-text
+   #:read-clipboard-files
+   #:on-share-target-received
+   #:get-shared-data
+   #:share-text
+   #:share-file
+   #:can-share-p
+   #:clear-mini-app-enhanced-cache
+   #:get-mini-app-enhanced-stats
+   #:initialize-mini-app-enhanced))

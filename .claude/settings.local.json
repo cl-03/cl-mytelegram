@@ -12,7 +12,11 @@
       "Bash(rm check-parens.lisp)",
       "Bash(python3 -c ' *)",
       "Bash(python3)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(git clone *)",
+      "Bash(curl -L -o /tmp/libuv.zip https://github.com/libuv/libuv/releases/download/v1.48.0/libuv-v1.48.0-win-x64.zip)",
+      "Bash(unzip -o /tmp/libuv.zip -d /tmp/)",
+      "Bash(cp /tmp/libuv-v1.48.0-win-x64/bin/libuv-1.dll C:/Windows/System32/)"
     ]
   }
 }
