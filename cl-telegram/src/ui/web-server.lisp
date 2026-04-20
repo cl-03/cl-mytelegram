@@ -251,6 +251,7 @@
           (:chats (api-list-chats request))
           (:messages (api-get-messages request))
           (:send (api-send-message request))
+          (:media (handle-media-api-request request))
           (t
            (hunchentoot:return-code 400)
            \"{\\\"error\\\": \\\"Unknown resource\\\"}\"))))))
@@ -310,6 +311,40 @@
           (progn
             (hunchentoot:return-code 400)
             \"{\\\"error\\\": \\\"chat_id and text required\\\"}\")))))
+
+;;; ============================================================================
+;;; Media API Request Handlers
+;;; ============================================================================
+
+(defun handle-media-api-request (request)
+  "Handle media API requests.
+
+   Args:
+     request: Hunchentoot request object
+
+   Returns:
+     Response based on sub-resource"
+  (let* ((uri (hunchentoot:request-uri request))
+         (parts (cl-ppcre:split "/" uri)))
+    (when (>= (length parts) 4)
+      (let ((sub-resource (elt parts 3))
+            (file-id (when (>= (length parts) 5) (elt parts 4))))
+        (cond
+          ((string= sub-resource "thumb")
+           (if file-id
+               (handle-media-thumb-request file-id)
+               (progn
+                 (hunchentoot:return-code 400)
+                 "{\"error\": \"File ID required\"}"))))
+          ((string= sub-resource "download")
+           (if file-id
+               (handle-media-download-request file-id)
+               (progn
+                 (hunchentoot:return-code 400)
+                 "{\"error\": \"File ID required\"}"))))
+        (t
+         (hunchentoot:return-code 400)
+         "{\"error\": \"Unknown media resource\"}")))))
 
 ;;; ============================================================================
 ;;; WebSocket Server

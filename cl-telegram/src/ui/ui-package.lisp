@@ -71,6 +71,16 @@
    #:create-theme-switcher
    #:*current-theme*
 
+   ;; Settings Panel (v0.24.0)
+   #:generate-settings-panel-html
+   #:render-settings-panel
+   #:show-settings-panel-web
+   #:get-settings-web
+   #:save-settings-web
+   #:get-user-setting
+   #:set-user-setting
+   #:get-all-settings
+
    ;; Web Server (v0.24.0)
    #:run-web-server
    #:stop-web-server

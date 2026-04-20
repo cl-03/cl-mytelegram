@@ -2,7 +2,7 @@
 
 (defpackage #:cl-telegram/api
   (:nicknames #:cl-tg/api)
-  (:use #:cl)
+  (:use #:cl #:bordeaux-threads)
   (:export
    ;; Authentication State
    #:*auth-state*
@@ -197,6 +197,239 @@
    ;; Update Handler
    #:make-update-handler
    #:update-handler
+
+   ;; Translation (v0.25.0)
+   #:translate-text
+   #:translate-message
+   #:translate-messages
+   #:translate-chat-messages
+   #:set-chat-language
+   #:get-chat-language
+   #:enable-auto-translation
+   #:auto-translation-enabled-p
+   #:register-auto-translation-handler
+   #:unregister-auto-translation-handler
+   #:get-translation-info
+   #:list-supported-languages
+   #:detect-language
+   #:configure-translation-api
+   #:get-cached-translation
+   #:clear-translation-cache
+   #:get-translation-history
+
+   ;; Story Highlights (v0.25.0)
+   #:create-story-highlight
+   #:edit-story-highlight
+   #:edit-highlight-cover
+   #:delete-story-highlight
+   #:reorder-story-highlights
+   #:get-story-highlights
+   #:get-story-highlight
+   #:get-highlight-stories
+   #:add-stories-to-highlight
+   #:remove-stories-from-highlight
+   #:set-highlight-privacy
+   #:get-highlight-privacy
+   #:view-highlight-stories
+   #:clear-highlights-cache
+   #:refresh-highlights
+   #:get-highlight-count
+   #:get-highlight-by-title
+   #:search-highlights
+   #:highlight-has-story-p
+   #:archive-story-to-highlight
+   #:create-highlight-from-archived-stories
+   #:delete-multiple-highlights
+   #:export-highlights
+
+   ;; Channel Reactions & Emoji Status (v0.25.0)
+   #:send-channel-message-reaction
+   #:remove-channel-message-reaction
+   #:get-channel-message-reactions
+   #:get-channel-reaction-stats
+   #:get-recent-channel-reactors
+   #:get-channel-available-reactions
+   #:set-channel-available-reactions
+   #:set-emoji-status
+   #:clear-emoji-status
+   #:get-emoji-statuses
+   #:get-user-emoji-status
+   #:get-premium-emoji-statuses
+   #:get-channel-reaction-analytics
+   #:get-reaction-trend
+   #:clear-reaction-cache
+   #:clear-all-reaction-caches
+   #:get-popular-reactions
+   #:is-reaction-selected-p
+
+   ;; Advanced Media Editing (v0.25.0)
+   #:enhance-image
+   #:adjust-image-brightness
+   #:adjust-image-contrast
+   #:adjust-image-saturation
+   #:adjust-image-tonemap
+   #:apply-professional-filter
+   #:apply-cinematic-filter
+   #:apply-vintage-filter
+   #:apply-teal-orange-grade
+   #:apply-vignette
+   #:add-film-grain
+   #:batch-process-images
+   #:convert-image-format
+   #:add-watermark
+   #:add-logo-watermark
+   #:resize-image
+   #:denoise-image
+   #:sharpen-image
+   #:upscale-image
+   #:auto-enhance-image
+
+   ;; Group Video Call (v0.26.0)
+   #:init-group-video
+   #:shutdown-group-video
+   #:start-group-video-stream
+   #:stop-group-video-stream
+   #:enable-screen-sharing
+   #:disable-screen-sharing
+   #:get-screen-share-streams
+   #:set-video-quality
+   #:get-video-quality
+   #:get-group-video-layout
+   #:pin-participant-video
+   #:unpin-participant-video
+   #:set-video-layout-type
+   #:toggle-group-call-recording
+   #:stop-group-call-recording
+   #:get-group-call-recording
+   #:enable-ai-noise-reduction
+   #:disable-ai-noise-reduction
+   #:get-group-video-stats
+   #:get-participant-video-stats
+   #:make-video-layout
+   #:update-video-layout
+   #:get-layout-grid
+   #:get-quality-preset
+   #:calculate-adaptive-quality
+
+   ;; Video Messages (v0.26.0)
+   #:start-video-message-recording
+   #:stop-video-message-recording
+   #:pause-video-message-recording
+   #:resume-video-message-recording
+   #:cancel-video-message-recording
+   #:get-recording-progress
+   #:process-video-message
+   #:crop-video-to-circle
+   #:compress-video
+   #:generate-video-thumbnail
+   #:send-video-message
+   #:download-video-message
+   #:parse-video-message
+   #:play-video-message
+   #:get-video-metadata
+   #:is-valid-video-message
+
+   ;; Media Albums (v0.26.0)
+   #:create-media-album
+   #:delete-media-album
+   #:edit-media-album
+   #:get-media-albums
+   #:get-media-album
+   #:add-media-to-album
+   #:remove-media-from-album
+   #:reorder-album-media
+   #:auto-create-albums
+   #:add-media-tags
+   #:remove-media-tags
+   #:search-media-by-tags
+   #:get-popular-tags
+   #:search-media
+   #:filter-media-by-type
+   #:get-media-timeline
+   #:export-media-album
+   #:export-all-media
+
+   ;; Auto-Delete Messages (v0.27.0)
+   #:set-message-timer
+   #:cancel-message-timer
+   #:get-message-timer-remaining
+   #:set-chat-default-timer
+   #:get-chat-default-timer
+   #:clear-chat-default-timer
+   #:start-auto-delete-monitor
+   #:stop-auto-delete-monitor
+   #:get-auto-delete-stats
+   #:send-message-with-auto-delete
+   #:list-active-timers
+   #:cleanup-expired-timers
+
+   ;; Chat Backup (v0.27.0)
+   #:export-chat-history
+   #:export-all-chats
+   #:import-chat-history
+   #:create-incremental-backup
+   #:get-backup-info
+
+   ;; Global Search (v0.27.0)
+   #:global-search-messages
+   #:search-in-chat
+   #:get-search-suggestions
+   #:highlight-search-result
+   #:format-search-results
+   #:search-messages-by-sender
+   #:search-messages-by-date-range
+   #:search-messages-by-media-type
+   #:clear-search-cache
+   #:get-search-cache-stats
+   #:set-search-cache-ttl
+   #:get-search-history
+   #:clear-search-history
+
+   ;; Media Library (v0.27.0)
+   #:get-all-media
+   #:get-all-photos
+   #:get-all-videos
+   #:get-all-documents
+   #:get-all-audio
+   #:get-all-files
+   #:get-chat-media
+   #:search-files
+   #:filter-media-by-chat
+   #:sort-media-by-date
+   #:group-media-by-month
+   #:download-media-batch
+   #:delete-media-batch
+   #:get-media-statistics
+   #:get-media-usage-by-chat
+   #:get-media-usage-by-type
+   #:get-media-item
+   #:clear-media-cache
+   #:get-media-cache-stats
+   #:set-media-cache-ttl
+   #:detect-media-type
+   #:get-file-extension
+   #:export-media-list
+
+   ;; Custom Themes (v0.27.0)
+   #:create-theme
+   #:delete-theme
+   #:get-theme
+   #:list-themes
+   #:set-theme-color
+   #:get-theme-colors
+   #:apply-theme
+   #:set-chat-background
+   #:get-chat-background
+   #:reset-chat-background
+   #:set-font-size
+   #:set-app-icon
+   #:export-theme
+   #:import-theme
+   #:get-theme-presets
+   #:apply-theme-preset
+   #:clear-theme-cache
+   #:get-theme-stats
+
    #:register-update-handler
    #:unregister-update-handler
    #:clear-update-handlers
@@ -1745,4 +1978,118 @@
    #:business-connection-cached-p
 
    ;; Service Message Reactions (8.3)
-   #:send-service-message-reaction))
+   #:send-service-message-reaction
+
+   ;; Bot API 9.4-9.6 Features (2026)
+   ;; Custom Emoji Messages (9.4)
+   #:custom-emoji-sticker
+   #:custom-emoji-pack
+   #:custom-emoji-sticker-id
+   #:custom-emoji-emoji
+   #:custom-emoji-animation
+   #:custom-emoji-thumbnail
+   #:custom-emoji-width
+   #:custom-emoji-height
+   #:custom-emoji-file-size
+   #:emoji-pack-id
+   #:emoji-pack-title
+   #:emoji-pack-emojis
+   #:emoji-pack-is-official
+   #:emoji-pack-owner-id
+   #:emoji-pack-sticker-count
+   #:*custom-emoji-cache*
+   #:*emoji-pack-cache*
+   #:get-custom-emoji-sticker
+   #:send-custom-emoji-message
+   #:get-custom-emoji-pack
+   #:list-custom-emoji-packs
+   #:add-custom-emoji-to-pack
+   #:delete-custom-emoji
+   #:create-custom-emoji-pack
+   #:clear-custom-emoji-cache
+   #:get-custom-emoji-cache-stats
+
+   ;; Enhanced Message Content (9.4)
+   #:interactive-content
+   #:interactive-poll
+   #:quiz-poll
+   #:interactive-content-type
+   #:interactive-message-id
+   #:interactive-chat-id
+   #:interactive-data
+   #:poll-question
+   #:poll-options
+   #:poll-total-voters
+   #:poll-is-anonymous
+   #:poll-allows-multiple
+   #:quiz-correct-option
+   #:quiz-explanation
+   #:get-enhanced-message-content
+   #:parse-interactive-content
+   #:create-interactive-poll
+   #:create-quiz-mode
+   #:get-poll-results
+
+   ;; Animated Emoji (9.4)
+   #:send-animated-emoji
+   #:get-available-emoji
+   #:get-emoji-status
+   #:set-emoji-status
+
+   ;; Bot API 9.5 - DateTime Entity
+   #:datetime-entity
+   #:datetime-value
+   #:datetime-timezone
+   #:datetime-format
+   #:datetime-display-text
+   #:make-datetime-entity
+   #:parse-datetime-entity
+   #:format-datetime-display
+   #:get-timezone-aware-datetime
+   #:convert-datetime-timezone
+
+   ;; Bot API 9.5 - Managed Bots
+   #:managed-bot-info
+   #:token-change-notification
+   #:managed-bot-id
+   #:managed-org-id
+   #:managed-bot-status
+   #:managed-token-date
+   #:token-change-bot-id
+   #:token-change-type
+   #:token-change-date
+   #:token-change-by
+   #:register-managed-bot
+   #:get-bot-management-status
+   #:update-bot-credentials
+   #:handle-token-change-notification
+   #:get-token-change-history
+   #:get-managed-bot-info
+   #:unregister-managed-bot
+
+   ;; Bot API 9.6 - Mini App Device Access
+   #:request-camera-access
+   #:request-microphone-access
+   #:capture-photo
+   #:capture-video
+   #:get-media-stream
+   #:release-media-stream
+   #:get-device-permissions
+   #:check-device-support
+
+   ;; Bot API 9.6 - Mini App Theme
+   #:mini-app-theme
+   #:mini-app-bg-color
+   #:mini-app-text-color
+   #:mini-app-hint-color
+   #:mini-app-link-color
+   #:mini-app-button-color
+   #:mini-app-secondary-bg
+   #:mini-app-header-bg
+   #:mini-app-is-dark
+   #:get-mini-app-theme
+   #:sync-with-client-theme
+   #:apply-theme-parameters
+   #:on-theme-change
+   #:get-theme-parameters
+   #:set-theme-override))

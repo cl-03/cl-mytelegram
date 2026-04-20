@@ -4,100 +4,175 @@ A pure Common Lisp Telegram client implementation using MTProto 2.0 protocol.
 
 ## Status
 
-**Release v0.23.0** - Complete with Bot API 8.0 support: message reactions, emoji status, advanced media editing, story highlights, and message translation.
+**Release v0.28.0** - Complete with Bot API 9.4-9.6 support, Custom Emoji Messages, DateTime Entity, Managed Bots, Mini App Device Access, and Theme Integration.
 
-## What's New in v0.23.0
+## What's New in v0.28.0
 
-### Bot API 8.0 Support (November 2024)
+### Bot API 9.4-9.6 Support
 
-#### Message Reactions (12 functions)
-- **Reaction Types**: Emoji, custom emoji, and star reactions
-- **Send Reactions**: Send reactions to messages with big animation support
-- **Get Reactions**: Retrieve detailed reaction breakdown with counts
-- **Remove Reactions**: Remove specific or all reactions
-- **Reaction Updates**: Register handlers for reaction change events
-- **Available Reactions**: Get list of available reactions for current user
+Complete implementation of latest Telegram Bot API features:
 
-#### Emoji Status (4 functions)
-- **Set Status**: Set emoji status with optional duration
-- **Clear Status**: Remove emoji status
-- **Get Statuses**: Retrieve available emoji statuses
-- **User Status**: Get other users' emoji status
+#### Custom Emoji Messages (9.4)
+- Send custom emoji stickers in chats
+- Create and manage emoji packs
+- Browse available emoji collections
+- Animated emoji support
 
-#### Advanced Media Editing (8 functions)
-- **Edit Media**: Advanced media editing with options
-- **Crop & Rotate**: Crop and rotate media files using Opticl library
-- **Apply Filters**: 33 built-in filters (clarendon, ginger, moon, nashville, etc.)
-- **Text Overlay**: Add text overlays with custom fonts and colors
-- **Emoji Stickers**: Add emoji/custom emoji stickers to media
-- **Edit Caption**: Edit message captions with parse modes
-- **Drawing Primitives**: Draw rectangles and circles on images
-- **Watermarks**: Add watermarks with position and opacity control
+#### DateTime Entity (9.5)
+- Formatted date/time display in messages
+- Multiple format support (ISO8601, RFC2822, human-readable)
+- Timezone-aware datetime handling
+- Parse and convert datetime entities
 
-#### Story Highlights Management (8 functions)
-- **Create Highlight**: Create story highlights with custom covers
-- **Edit Highlight**: Edit title, cover, and stories
-- **Edit Cover**: Edit highlight cover with crop and filters
-- **Reorder**: Reorder highlights in profile
-- **Privacy**: Set highlight privacy (public/contacts/close-friends/custom)
-- **Delete**: Remove highlights
+#### Managed Bots (9.5)
+- Organization-level bot management
+- Secure token rotation
+- Token change notifications and history
+- Event handlers for credential changes
 
-#### Message Translation (9 functions)
-- **Translate Message**: Translate individual messages
-- **Translate Text**: Translate arbitrary text
-- **60+ Languages**: Support for 60+ languages with auto-detect
-- **Chat Language**: Set per-chat language preferences
-- **Auto Translation**: Enable/disable automatic translation
-- **Translation Cache**: LRU cache for performance
-- **History**: Recent translation history
+#### Mini App Device Access (9.6)
+- Camera access for photo/video capture
+- Microphone access for audio recording
+- Media stream management
+- Device permission management
 
-### Test Coverage
-- **Bot API 8.0 Tests**: 25+ test cases for all new features
-- **Rate Limiting**: Configurable rate limiters with blocking/non-blocking modes
-- **Logging**: Level-based logging with debug support
-- **Configuration**: JSON config management with auto-save
-- **Helper Macros**: with-connection, with-retry, define-api-function
+#### Mini App Theme Integration (9.6)
+- Sync with Telegram client themes
+- Custom theme parameters
+- Theme change event handling
+- Dark/light mode support
 
-### Test Coverage
-- **v0.22.0 Tests**: 60+ test cases for notifications, contacts, and utilities
+---
 
-## What's New in v0.21.0
+## What's New in v0.27.0
 
-### Chat Folder Management (20 functions)
-- **Folder CRUD**: Create, edit, delete, and reorder chat folders
-- **Filters**: Contact, non-contact, group, channel, bot, unread, muted, pinned filters
-- **Archive**: Archive chats and retrieve archived chats
-- **Sharing**: Generate shareable folder links and import folders
-- **Chat Assignment**: Add/remove chats from folders
+### Auto-Delete Messages
 
-### Emoji & Customization (15 functions)
-- **Custom Emoji**: Search and retrieve custom emoji stickers
-- **Message Effects**: Send messages with animated effects
-- **Dice & Games**: Send animated dice with random values (🎲 🎯 🏀 ⚽ 🎳 🎰)
-- **Wallpapers**: Set chat wallpapers with solid, gradient, image, or pattern types
-- **Themes**: Apply chat themes with custom colors
-- **Star Reactions**: Send star reactions to messages (1-1000 stars)
-- **Giveaways**: Create Telegram Stars giveaways
+Telegram-style self-destructing messages:
 
-### Channel Advanced Features (15 functions)
-- **Forum Topics**: Create, edit, close, reopen, delete, pin, unpin topics
-- **Channel Statistics**: Get member count, views, shares, growth data
-- **Message Statistics**: Track views, forwards, reactions with hourly breakdown
-- **Sponsored Messages**: Retrieve and report sponsored messages
-- **Reaction Statistics**: Get reaction breakdown and recent reactors
+- **Per-Message Timers** - Set timers from 1 second to 1 week
+- **Per-Chat Default Timers** - Auto-delete for all messages in a chat
+- **Silent Deletion** - Delete without notification
+- **Background Monitor** - Automatic cleanup thread
+- **Integration** - Send messages with auto-delete built-in
 
-### Test Coverage
-- **v0.21.0 Tests**: 70+ test cases for folders, emoji, and channel features
+### Chat Backup & Export
 
-## What's New in v0.20.0
+Complete chat history management:
 
-### Payment System (12 functions)
-- **Invoices**: Create and send payment invoices with multiple line items
-- **Payment Links**: Generate shareable payment link URLs
-- **Telegram Stars**: Full Stars support (refunds, gifting, balance management)
-- **Subscriptions**: Recurring subscription invoice helpers
+- **Export** - JSON/HTML formats with media support
+- **Import** - Restore from backup files
+- **Incremental Backup** - Only backup changes since last backup
+- **Encryption** - Password-protected backups
+- **Compression** - Save disk space with zlib compression
 
-### Business Features (28 functions)
+### Global Search
+
+Cross-chat message search:
+
+- **Global Search** - Search across all chats simultaneously
+- **Advanced Filters** - By sender, date range, media type, chat
+- **Search Suggestions** - Smart autocomplete
+- **Highlighting** - See match context in results
+
+### Media Library
+
+Unified media and file management:
+
+- **Browse All Media** - Photos, videos, documents, audio
+- **Search Files** - Find files by name
+- **Batch Operations** - Download/delete multiple files
+- **Statistics** - Storage usage breakdown
+
+### Custom Themes
+
+Deep UI customization:
+
+- **Theme Editor** - Create and edit custom themes
+- **Per-Chat Backgrounds** - Unique background per chat
+- **Font Sizes** - Adjustable text sizes
+- **Custom Icons** - Replace app icon
+- **Built-in Themes** - 6 pre-designed themes
+
+---
+
+## What's New in v0.26.0
+
+### Group Video Calls (10+ Participants)
+
+Complete multi-participant video calling system:
+
+- **Multi-Participant Video** - Support for 10+ simultaneous video streams
+- **Screen Sharing** - Full screen or window capture with quality presets
+- **Video Quality Control** - Adaptive quality (LD/SD/HD/FHD) based on bandwidth
+- **Video Layouts** - Grid, speaker, and spotlight layouts with pinning
+- **Call Recording** - Record calls with automatic storage management
+- **AI Noise Reduction** - Configurable noise suppression levels
+
+### Video Messages
+
+Telegram-style circular video messages:
+
+- **Recording** - Start/stop/pause/resume with progress tracking
+- **Processing** - Auto crop to circle, compress, generate thumbnails
+- **Send/Receive** - Full sending and receiving support
+- **Playback** - Integrated video message playback
+
+### Smart Media Albums
+
+Intelligent media organization:
+
+- **Album Management** - Create, edit, delete, reorder albums
+- **Auto-Create** - Automatically group media by date or events
+- **Tag System** - Add tags, search by tags, popular tags
+- **Search & Filter** - Multi-criteria search with type/date/tag filters
+- **Export** - Export albums or all media to local directory
+
+---
+
+## What's New in v0.25.0
+
+### Message Translation (60+ Languages)
+
+Complete message translation system:
+
+- **60+ Languages** - Chinese, Japanese, Russian, German, French, Spanish, and more
+- **Auto-Translation** - Real-time incoming message translation
+- **Per-Chat Language** - Set different target languages per chat
+- **Translation Cache** - LRU cache for performance (1000 entries)
+- **API Support** - DeepL, Google Translate, LibreTranslate
+- **Format Preservation** - Preserves message entities and formatting
+
+### Story Highlights Management
+
+Complete story highlights system:
+
+- **Create Highlights** - With custom covers and descriptions
+- **Edit & Reorder** - Full CRUD operations
+- **Privacy Controls** - Public, Contacts, Close Friends, Custom
+- **Story Management** - Add/remove stories from highlights
+- **Search & Export** - Find and backup highlights
+
+### Channel Reactions & Emoji Status
+
+Advanced engagement features:
+
+- **Message Reactions** - Emoji and custom emoji reactions
+- **Big Reactions** - Animated reactions for Premium users
+- **Reaction Stats** - Detailed breakdown and analytics
+- **Emoji Status** - Set custom emoji status with duration
+- **Premium Statuses** - Exclusive emoji for Premium users
+
+### Advanced Media Editing
+
+Professional-grade editing:
+
+- **AI Enhancement** - Auto-enhance, denoise, sharpen, upscale
+- **Color Adjustments** - Brightness, contrast, saturation, tone mapping
+- **Pro Filters** - Cinematic, vintage, teal-orange, vignette
+- **Batch Processing** - Process multiple images
+- **Watermarking** - Text and logo overlays
+- **Format Conversion** - PNG, JPEG, WebP, BMP
 - **Business Connections**: Manage bot connections to business accounts
 - **Location**: Set and manage business address with coordinates
 - **Opening Hours**: Configure weekly business hours schedule
@@ -232,9 +307,16 @@ Completed:
 - **API Functions**: 700+ exported functions
 - **Bot API Version**: 8.0 (November 2024)
 
-## Recent Activity (v0.23.0)
+## Recent Activity (v0.24.0)
 
 ### New Modules
+
+**Web UI Module** (2,500+ lines)
+- Standalone web server with Hunchentoot
+- WebSocket real-time updates
+- Media gallery with lightbox
+- Settings panel
+- PWA with Service Worker
 
 **Image Processing Module** (1,900+ lines)
 - Full-featured image processing using Opticl library
@@ -243,13 +325,21 @@ Completed:
 - Advanced filters: blur, sharpen, vignette, pixelate
 - Drawing primitives: rectangles, circles
 - Overlays: text, emoji, watermarks
-- Thumbnail generation
+- Emoji rendering and font management
+
+**Mobile Platform Support** (1,100+ lines)
+- iOS integration with APNs push notifications
+- Android integration with FCM push notifications
+- Background service support
+- Platform-specific URL handling
 
 ### New Documentation
 
-- `docs/EXAMPLES_BOT_API_8.md` - Comprehensive usage examples
+- `docs/RELEASE_NOTES_v0.24.0.md` - v0.24.0 complete release notes
 - `docs/IMAGE_PROCESSING_API.md` - Complete image processing API reference
-- `docs/RELEASE_NOTES_v0.23.0.md` - v0.23.0 release notes
+- `docs/PERFORMANCE_OPTIMIZATIONS_V3.md` - Performance optimization guide
+- `docs/EXAMPLES_BOT_API_8.md` - Bot API 8.0 usage examples
+- `docs/BOT_API_UPDATES_8.1-8.3.md` - Bot API 8.1-8.3 updates
 
 ---
 
@@ -262,10 +352,11 @@ Completed:
 | MTProto Layer | 6 | ~500 |
 | Network Layer | 7 | ~700 |
 | API Layer | 51 | ~25,200 |
-| UI Layer | 4 | ~1,550 |
-| Mobile Layer | 3 | ~1,100 |
-| Tests | 37 | ~10,900 |
-| **Total** | **115** | **~41,350** |
+| UI Layer | 7 | ~3,500 |
+| Image Processing | 7 | ~1,900 |
+| Mobile Layer | 4 | ~1,100 |
+| Tests | 40 | ~12,000 |
+| **Total** | **133** | **~46,300** |
 
 ## Test Coverage
 
@@ -337,6 +428,35 @@ $ sbcl --load quicklisp-install.lisp
 ```
 
 ## Usage
+
+### Web UI (NEW in v0.24.0)
+
+```lisp
+(asdf:load-system :cl-telegram)
+(use-package :cl-telegram/ui)
+
+;; Start web server on default port (8080)
+(run-web-server)
+
+;; Start on custom port
+(run-web-server :port 3000)
+
+;; Enable real-time push notifications
+(enable-realtime-push)
+
+;; Open in default browser
+(open-web-ui-in-browser)
+
+;; Stop server
+(stop-web-server)
+```
+
+**Features:**
+- Progressive Web App (PWA) - installable on any device
+- Real-time message updates via WebSocket
+- Media gallery with lightbox viewer
+- Settings panel with account, privacy, and appearance options
+- Responsive design for mobile, tablet, and desktop
 
 ### CLI Client
 

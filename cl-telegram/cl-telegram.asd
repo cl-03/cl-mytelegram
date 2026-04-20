@@ -5,7 +5,7 @@
   :description "A pure Common Lisp Telegram client implementation using MTProto 2.0"
   :author "Your Name <your.email@example.com>"
   :license "Boost Software License 1.0"
-  :version "0.23.0"
+  :version "0.26.0"
   :depends-on (:cl-async
                :usocket
                :dexador
@@ -85,6 +85,9 @@
                              (:file "message-threads")
                              (:file "voice-messages")
                              (:file "stories")
+                             (:file "story-highlights")
+                             (:file "channel-reactions")
+                             (:file "advanced-media-editing")
                              (:file "premium")
                              (:file "optimizations-v2")
                              (:file "desktop-notifications")
@@ -101,7 +104,17 @@
                              (:file "contacts-enhanced")
                              (:file "utilities")
                              (:file "bot-api-8")
-                             (:file "bot-api-8-extensions")))
+                             (:file "bot-api-8-extensions")
+                             (:file "bot-api-9")
+                             (:file "translation")
+                             (:file "group-video-call")
+                             (:file "video-messages")
+                             (:file "media-albums")
+                             (:file "auto-delete-messages")
+                             (:file "chat-backup")
+                             (:file "global-search")
+                             (:file "media-library")
+                             (:file "custom-themes")))
                ;; UI layer
                (:module "ui"
                 :serial t
@@ -110,6 +123,8 @@
                              (:file "clog-ui")
                              (:file "clog-components")
                              (:file "media-viewer")
+                             (:file "media-gallery")
+                             (:file "settings-panel")
                              (:file "web-server")))
                ;; Image processing layer
                (:module "image-processing"
@@ -167,7 +182,17 @@
                (:file "v0.22.0-tests")
                (:file "bot-api-8-tests")
                (:file "bot-api-8-extensions-tests")
-               (:file "image-processing-tests")))
+               (:file "bot-api-9-tests")
+               (:file "image-processing-tests")
+               (:file "translation-tests")
+               (:file "story-highlights-tests")
+               (:file "channel-reactions-tests")
+               (:file "v0.26.0-tests")
+               (:file "auto-delete-tests")
+               (:file "chat-backup-tests")
+               (:file "global-search-tests")
+               (:file "media-library-tests")
+               (:file "custom-themes-tests")))
 
 ;; Documentation system
 (asdf:defsystem #:cl-telegram/docs

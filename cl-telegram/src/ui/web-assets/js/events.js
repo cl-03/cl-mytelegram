@@ -416,6 +416,133 @@ function closeMediaViewer() {
 }
 
 /* ============================================================================
+ * Media Gallery Functions
+ * ============================================================================ */
+
+/**
+ * Filter media gallery by type
+ * @param {string} filter - Filter type: 'all', 'photo', 'video', 'document'
+ */
+function filterGallery(filter) {
+  console.log('Filtering gallery:', filter);
+
+  const gallery = document.querySelector('.media-gallery');
+  if (!gallery) return;
+
+  const chatId = gallery.dataset.chatId;
+  const type = filter === 'all' ? 'all' : filter;
+
+  // Update active filter button
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.filter === filter);
+  });
+
+  // Reload gallery with new filter
+  if (window.clogEval && chatId) {
+    window.clogEval(`(cl-telegram/ui::reload-media-gallery *current-window* "${chatId}" "${type}")`);
+  }
+}
+
+/**
+ * Load more media items (pagination)
+ */
+function loadMoreMedia() {
+  console.log('Loading more media...');
+
+  const gallery = document.querySelector('.media-gallery');
+  if (!gallery) return;
+
+  const chatId = gallery.dataset.chatId;
+  const type = gallery.dataset.type || 'all';
+
+  if (window.clogEval && chatId) {
+    window.clogEval(`(cl-telegram/ui::load-more-media *current-window* "${chatId}" "${type}")`);
+  }
+}
+
+/**
+ * Open lightbox for media
+ * @param {string} fileId - File identifier
+ */
+function openLightbox(fileId) {
+  console.log('Opening lightbox:', fileId);
+
+  if (window.clogEval) {
+    window.clogEval(`(cl-telegram/ui::open-lightbox-web *current-window* "${fileId}")`);
+  }
+
+  // Show lightbox overlay
+  const lightbox = document.getElementById('media-lightbox');
+  if (lightbox) {
+    lightbox.style.display = 'flex';
+  }
+}
+
+/**
+ * Close lightbox
+ */
+function closeLightbox() {
+  const lightbox = document.getElementById('media-lightbox');
+  if (lightbox) {
+    lightbox.style.display = 'none';
+  }
+
+  if (window.clogEval) {
+    window.clogEval('(cl-telegram/ui::close-lightbox-web *current-window*)');
+  }
+}
+
+/**
+ * Show previous media in lightbox
+ */
+function previousMedia() {
+  console.log('Previous media');
+  // Navigate to previous item in gallery
+  const currentIndex = window.currentMediaIndex || 0;
+  if (currentIndex > 0) {
+    const items = document.querySelectorAll('.media-item');
+    const prevItem = items[currentIndex - 1];
+    if (prevItem) {
+      const fileId = prevItem.dataset.fileId;
+      openLightbox(fileId);
+      window.currentMediaIndex = currentIndex - 1;
+    }
+  }
+}
+
+/**
+ * Show next media in lightbox
+ */
+function nextMedia() {
+  console.log('Next media');
+  // Navigate to next item in gallery
+  const items = document.querySelectorAll('.media-item');
+  const currentIndex = window.currentMediaIndex || 0;
+  if (currentIndex < items.length - 1) {
+    const nextItem = items[currentIndex + 1];
+    if (nextItem) {
+      const fileId = nextItem.dataset.fileId;
+      openLightbox(fileId);
+      window.currentMediaIndex = currentIndex + 1;
+    }
+  }
+}
+
+/**
+ * Download media file
+ * @param {string} fileId - File identifier
+ */
+function downloadMedia(fileId) {
+  console.log('Downloading media:', fileId);
+
+  // Create download link
+  const link = document.createElement('a');
+  link.href = `/api/media/download/${fileId}`;
+  link.download = '';
+  link.click();
+}
+
+/* ============================================================================
  * Theme Switching
  * ============================================================================ */
 
@@ -584,6 +711,7 @@ function init() {
 
   // Set up global state
   window.currentChatId = null;
+  window.currentMediaIndex = 0;
   window.clogEval = window.clogEval || function(code) {
     console.log('CLOG eval (mock):', code);
   };

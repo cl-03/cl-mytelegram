@@ -1596,3 +1596,22 @@
 
     (clog:append! container header)
     header))
+
+;;; ============================================================================
+;;; Settings Panel Integration
+;;; ============================================================================
+
+(defun show-settings-panel (win)
+  "Show settings panel.
+
+   Args:
+     win: CLOG window object
+
+   Returns:
+     T on success"
+  (render-settings-panel win)
+  t)
+
+;;; ============================================================================
+;;; End of clog-ui.lisp
+;;; ============================================================================

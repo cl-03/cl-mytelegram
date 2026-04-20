@@ -591,6 +591,26 @@ body {
 }
 
 /* ============================================================================
+   Settings Panel
+   ============================================================================ */
+
+.settings-toggle {
+  background: var(--bg-tertiary);
+  border: none;
+  color: var(--text-primary);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: var(--font-size-md);
+  transition: all var(--transition-fast);
+}
+
+.settings-toggle:hover {
+  background: var(--accent);
+  color: white;
+}
+
+/* ============================================================================
    Utilities
    ============================================================================ */
 

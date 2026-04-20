@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Read(//d D:/Claude/cl-mytelegram/**)",
+      "Bash(sbcl --no-userinit --load test-load.lisp)",
+      "Bash(sbcl *)",
+      "Bash(cd /d \"D:\\\\Claude\\\\cl-mytelegram\\\\cl-telegram\")",
+      "Bash(cat)",
+      "Bash(rm check-parens.lisp)",
+      "Bash(python3 -c ' *)",
+      "Bash(python3)",
+      "WebSearch"
+    ]
+  }
+}
