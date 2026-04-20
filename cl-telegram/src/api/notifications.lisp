@@ -480,3 +480,197 @@
     (error (e)
       (log-message :error "Error importing notification settings: ~A" e)
       nil)))
+
+;;; ======================================================================
+;;; v0.32.0 Enhancements: Silent Mode and Global Settings
+;;; ======================================================================
+
+(defvar *silent-mode-enabled* nil
+  "Global silent mode (do not disturb) flag")
+
+(defvar *silent-mode-until* nil
+  "Silent mode until timestamp (NIL = indefinite)")
+
+(defvar *global-notify-settings* nil
+  "Global notification settings override")
+
+(defvar *peer-notify-settings* (make-hash-table :test 'equal)
+  "Per-peer notification settings")
+
+(defun get-notify-settings (&key (scope :global))
+  "Get notification settings for a scope.
+
+   SCOPE: :global, :private, :groups, :channels
+
+   Returns notification-settings object."
+  (case scope
+    (:global *notification-settings*)
+    (:private (gethash :private *peer-notify-settings* *notification-settings*))
+    (:groups (gethash :groups *peer-notify-settings* *notification-settings*))
+    (:channels (gethash :channels *peer-notify-settings* *notification-settings*))
+    (otherwise *notification-settings*)))
+
+(defun update-notify-settings (scope &key show-preview show-sender sound-enabled
+                                      vibration-enabled priority mute-until)
+  "Update notification settings for a scope.
+
+   SCOPE: :global, :private, :groups, :channels
+   SHOW-PREVIEW: Show message preview
+   SHOW-SENDER: Show sender name
+   SOUND-ENABLED: Enable notification sound
+   VIBRATION-ENABLED: Enable vibration
+   PRIORITY: Priority level (:low, :default, :high)
+   MUTE-UNTIL: Timestamp to mute until (NIL = unmute)
+
+   Returns T on success."
+  (let ((settings (get-notify-settings :scope scope)))
+    (when show-preview (setf (notification-show-preview settings) show-preview))
+    (when show-sender (setf (notification-show-sender settings) show-sender))
+    (when sound-enabled (setf (notification-sound-enabled settings) sound-enabled))
+    (when vibration-enabled (setf (notification-vibration-enabled settings) vibration-enabled))
+    (when priority (setf (notification-priority settings) priority)))
+  (when (and scope (not (eq scope :global)))
+    (setf (gethash scope *peer-notify-settings*) (get-notify-settings :scope scope)))
+  (log:info "Notification settings updated for ~A" scope)
+  t)
+
+(defun reset-notify-settings (&key (scope :global))
+  "Reset notification settings to defaults.
+
+   SCOPE: :global, :private, :groups, :channels
+
+   Returns T on success."
+  (case scope
+    (:global
+     (setf *notification-settings* (make-instance 'notification-settings)))
+    (otherwise
+     (remhash scope *peer-notify-settings*)))
+  (log:info "Notification settings reset for ~A" scope)
+  t)
+
+(defun get-peer-notify-settings (peer-id)
+  "Get notification settings for a specific peer.
+
+   PEER-ID: Peer (chat/user/channel) identifier
+
+   Returns chat-notification-settings object."
+  (gethash peer-id *peer-notify-settings*
+           (make-instance 'chat-notification-settings
+                          :chat-id peer-id
+                          :use-default t)))
+
+(defun set-peer-notify-settings (peer-id &key mute-until show-preview
+                                          sound-enabled priority)
+  "Set notification settings for a specific peer.
+
+   PEER-ID: Peer identifier
+   MUTE-UNTIL: Timestamp to mute until
+   SHOW-PREVIEW: Show message preview
+   SOUND-ENABLED: Enable notification sound
+   PRIORITY: Priority level
+
+   Returns T on success."
+  (let ((settings (get-peer-notify-settings peer-id)))
+    (setf (chat-notification-use-default settings) nil)
+    (when mute-until (setf (chat-notification-mute-until settings) mute-until))
+    (when (null (chat-notification-settings settings))
+      (setf (chat-notification-settings settings)
+            (make-instance 'notification-settings)))
+    (let ((s (chat-notification-settings settings)))
+      (when show-preview (setf (notification-show-preview s) show-preview))
+      (when sound-enabled (setf (notification-sound-enabled s) sound-enabled))
+      (when priority (setf (notification-priority s) priority))))
+  (setf (gethash peer-id *peer-notify-settings*) settings)
+  (log:info "Peer notification settings set for ~A" peer-id)
+  t)
+
+(defun get-global-notify-settings ()
+  "Get global notification settings override.
+
+   Returns notification-settings object or NIL."
+  *global-notify-settings*)
+
+(defun set-global-notify-settings (settings)
+  "Set global notification settings override.
+
+   SETTINGS: notification-settings object
+
+   Returns T on success."
+  (setf *global-notify-settings* settings)
+  (log:info "Global notification settings updated")
+  t)
+
+(defun enable-silent-mode (&key (until nil) (duration-minutes nil))
+  "Enable silent mode (do not disturb).
+
+   UNTIL: Timestamp to disable silent mode
+   DURATION-MINUTES: Duration in minutes (alternative to UNTIL)
+
+   Returns T on success."
+  (let ((until-ts (or until
+                      (when duration-minutes
+                        (+ (get-universal-time) (* duration-minutes 60))))))
+    (setf *silent-mode-enabled* t)
+    (setf *silent-mode-until* until-ts))
+  (log:info "Silent mode enabled until ~A" *silent-mode-until*)
+  t)
+
+(defun disable-silent-mode ()
+  "Disable silent mode.
+
+   Returns T on success."
+  (setf *silent-mode-enabled* nil)
+  (setf *silent-mode-until* nil)
+  (log:info "Silent mode disabled")
+  t)
+
+(defun get-silent-mode-status ()
+  "Get silent mode status.
+
+   Returns plist with :enabled, :until, :remaining-seconds."
+  (let* ((now (get-universal-time))
+         (until *silent-mode-until*)
+         (remaining (when (and until (> until now))
+                      (- until now))))
+    (list :enabled (and *silent-mode-enabled*
+                        (or (null until) (> until now)))
+          :until until
+          :remaining-seconds remaining)))
+
+(defun is-peer-muted-p (peer-id)
+  "Check if a peer is muted.
+
+   PEER-ID: Peer identifier
+
+   Returns T if muted, NIL otherwise."
+  (let ((settings (get-peer-notify-settings peer-id)))
+    (let ((mute-until (chat-notification-mute-until settings)))
+      (if mute-until
+          (> mute-until (get-universal-time))
+          nil))))
+
+(defun is-silent-mode-active-p ()
+  "Check if silent mode is currently active.
+
+   Returns T if active, NIL otherwise."
+  (and *silent-mode-enabled*
+       (or (null *silent-mode-until*)
+           (> *silent-mode-until* (get-universal-time)))))
+
+(defun get-notification-stats ()
+  "Get notification statistics.
+
+   Returns plist with statistics."
+  (let ((total-peers 0)
+        (muted-peers 0)
+        (silent-active (is-silent-mode-active-p)))
+    (maphash (lambda (k v)
+               (declare (ignore k))
+               (incf total-peers)
+               (when (chat-notification-mute-until v)
+                 (incf muted-peers)))
+             *peer-notify-settings*)
+    (list :total-peers total-peers
+          :muted-peers muted-peers
+          :silent-mode-active silent-active
+          :silent-mode-until *silent-mode-until*)))

@@ -121,7 +121,9 @@
                              (:file "custom-themes")
                              (:file "file-management-enhanced")
                              (:file "payment-stars")
-                             (:file "account-security-enhanced")))
+                             (:file "account-security-enhanced")
+                             (:file "message-enhanced")
+                             (:file "bot-api-9-5")))
                ;; UI layer
                (:module "ui"
                 :serial t
@@ -207,7 +209,11 @@
                (:file "chat-backup-tests")
                (:file "global-search-tests")
                (:file "media-library-tests")
-               (:file "custom-themes-tests")))
+               (:file "custom-themes-tests")
+               (:file "message-enhanced-tests")
+               (:file "bot-api-9-5-tests")
+               (:file "chat-folders-tests")
+               (:file "notifications-v0.32-tests")))
 
 ;; Documentation system
 (asdf:defsystem #:cl-telegram/docs

@@ -2261,4 +2261,109 @@
    #:initialize-account-security-enhanced
    #:shutdown-account-security-enhanced
    #:*qr-login-tokens*
-   #:*2fa-info*))
+   #:*2fa-info*
+
+   ;; Message Enhanced (v0.32.0)
+   #:send-message-draft
+   #:send-message-stream
+   #:stream-message-update
+   #:stream-message-finalize
+   #:schedule-message
+   #:get-scheduled-messages
+   #:delete-scheduled-message
+   #:send-scheduled-message-now
+   #:save-draft
+   #:get-drafts
+   #:get-all-drafts
+   #:delete-draft
+   #:clear-all-drafts
+   #:make-photo-media
+   #:make-video-media
+   #:make-document-media
+   #:send-album
+   #:copy-message
+   #:copy-messages
+   #:get-message-stats
+   #:stream-message-session
+   #:stream-session-id
+   #:stream-session-chat-id
+   #:stream-session-draft-id
+   #:input-media
+   #:input-media-type
+   #:input-media-id
+   #:input-media-caption
+
+   ;; Bot API 9.5-9.6 (v0.32.0)
+   #:save-prepared-keyboard-button
+   #:get-prepared-keyboard-button
+   #:delete-prepared-keyboard-button
+   #:list-prepared-keyboard-buttons
+   #:send-prepared-button-reply
+   #:create-member-tag
+   #:assign-member-tag
+   #:remove-member-tag
+   #:get-member-tags
+   #:get-user-member-tags
+   #:delete-member-tag
+   #:create-poll-v2
+   #:send-poll-v2
+   #:get-poll-v2
+   #:close-poll-v2
+   #:get-poll-v2-results
+   #:parse-datetime-entity
+   #:create-datetime-entity
+   #:format-datetime-entity
+   #:get-bot-api-stats
+   #:prepared-keyboard-button
+   #:prepared-button-id
+   #:prepared-button-text
+   #:member-tag
+   #:member-tag-id
+   #:member-tag-name
+   #:member-tag-color
+   #:member-tag-user-ids
+   #:poll-v2
+   #:poll-v2-id
+   #:poll-v2-question
+   #:poll-v2-options
+   #:datetime-entity
+   #:datetime-entity-id
+   #:datetime-entity-datetime
+
+   ;; Chat Folders (v0.32.0)
+   #:create-chat-folder
+   #:edit-chat-folder
+   #:delete-chat-folder
+   #:get-chat-folders
+   #:get-chat-folder
+   #:set-chat-filter
+   #:get-chat-filters
+   #:pin-chat
+   #:unpin-chat
+   #:get-pinned-chats
+   #:get-unread-marks
+   #:set-unread-mark
+   #:clear-unread-mark
+   #:reorder-folder-chats
+   #:get-folder-chat-list
+   #:share-chat-folder
+   #:import-chat-folder
+   #:chat-folder
+   #:chat-folder-id
+   #:chat-folder-name
+   #:chat-folder-emoji
+
+   ;; Notifications (v0.32.0)
+   #:get-notify-settings
+   #:update-notify-settings
+   #:reset-notify-settings
+   #:get-peer-notify-settings
+   #:set-peer-notify-settings
+   #:get-global-notify-settings
+   #:set-global-notify-settings
+   #:enable-silent-mode
+   #:disable-silent-mode
+   #:get-silent-mode-status
+   #:notify-settings
+   #:notify-settings-silent
+   #:notify-settings-mute-until))
