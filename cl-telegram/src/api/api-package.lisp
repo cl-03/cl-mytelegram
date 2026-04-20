@@ -2139,4 +2139,23 @@
    #:can-share-p
    #:clear-mini-app-enhanced-cache
    #:get-mini-app-enhanced-stats
-   #:initialize-mini-app-enhanced))
+   #:initialize-mini-app-enhanced
+
+   ;; Bot API 9.7+ - Advanced Features (Biometric, Contacts)
+   #:is-biometric-available
+   #:request-biometric-auth
+   #:enroll-biometric
+   #:is-biometric-enrolled-p
+   #:is-contacts-api-supported
+   #:select-contacts
+   #:get-contact-details
+   #:clear-contacts-cache
+   #:expand-web-app
+   #:close-web-app
+   #:toggle-web-app-confirmation
+   #:setup-main-button
+   #:on-main-button-click
+   #:clear-biometric-cache
+   #:clear-advanced-cache
+   #:get-advanced-stats
+   #:initialize-bot-api-9-advanced))

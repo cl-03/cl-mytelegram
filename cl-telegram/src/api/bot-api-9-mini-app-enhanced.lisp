@@ -10,6 +10,9 @@
 
 (in-package #:cl-telegram/api)
 
+(defvar *share-target-handlers* (make-hash-table :test 'equal)
+  "Hash table storing share target handlers")
+
 ;;; ============================================================================
 ;;; Section 1: Haptic Feedback API
 ;;; ============================================================================
