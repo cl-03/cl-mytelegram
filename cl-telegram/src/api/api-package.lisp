@@ -2158,4 +2158,27 @@
    #:clear-biometric-cache
    #:clear-advanced-cache
    #:get-advanced-stats
-   #:initialize-bot-api-9-advanced))
+   #:initialize-bot-api-9-advanced
+
+   ;; Performance Optimizations v4
+   #:make-connection-pool
+   #:initialize-connection-pool
+   #:get-pool
+   #:acquire-connection
+   #:release-connection
+   #:close-pool
+   #:get-pool-stats
+   #:batch-rpc-call
+   #:enqueue-batch-request
+   #:flush-batch-queue
+   #:start-batch-processor
+   #:stop-batch-processor
+   #:defer-execution
+   #:cancel-deferred-execution
+   #:get-incremental-updates
+   #:apply-incremental-update
+   #:sync-incremental
+   #:get-performance-stats
+   #:clear-performance-cache
+   #:initialize-performance-optimizations-v4
+   #:shutdown-performance-optimizations-v4))
