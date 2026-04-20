@@ -2184,6 +2184,47 @@
    #:get-advanced-stats
    #:initialize-bot-api-9-advanced
 
+   ;; Bot API 9.8 (v0.33.0)
+   #:managed-bot
+   #:business-connection
+   #:enhanced-poll
+   #:member-tag
+   #:create-managed-bot
+   #:get-managed-bot
+   #:list-managed-bots
+   #:update-managed-bot
+   #:delete-managed-bot
+   #:setup-managed-bot
+   #:get-managed-bot-status
+   #:create-business-connection
+   #:get-business-connection
+   #:list-business-connections
+   #:update-business-connection
+   #:delete-business-connection
+   #:create-enhanced-poll
+   #:get-enhanced-poll
+   #:send-enhanced-poll
+   #:close-enhanced-poll
+   #:get-poll-voters
+   #:parse-datetime-entity
+   #:parse-iso-datetime
+   #:format-timestring
+   #:create-member-tag
+   #:get-member-tag
+   #:list-member-tags
+   #:assign-member-tag
+   #:remove-member-tag
+   #:delete-member-tag
+   #:generate-random-color
+   #:get-bot-api-9-8-version
+   #:check-bot-api-9-8-feature
+   #:*managed-bots*
+   #:*managed-bot-configurations*
+   #:*business-connections*
+   #:*enhanced-polls*
+   #:*member-tags*
+   #:*bot-api-9-8-features*
+
    ;; Performance Optimizations v4
    #:make-connection-pool
    #:initialize-connection-pool

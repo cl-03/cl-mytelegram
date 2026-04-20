@@ -124,6 +124,7 @@
                              (:file "account-security-enhanced")
                              (:file "message-enhanced")
                              (:file "bot-api-9-5")
+                             (:file "bot-api-9-8")
                              (:file "telegram-business")))
                ;; UI layer
                (:module "ui"
@@ -213,6 +214,7 @@
                (:file "custom-themes-tests")
                (:file "message-enhanced-tests")
                (:file "bot-api-9-5-tests")
+               (:file "bot-api-9-8-tests")
                (:file "chat-folders-tests")
                (:file "notifications-v0.32-tests")
                (:file "telegram-business-tests")
