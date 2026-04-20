@@ -430,6 +430,30 @@
    #:clear-theme-cache
    #:get-theme-stats
 
+   ;; Chat Backgrounds Enhanced (v0.33.0)
+   #:chat-background-pattern
+   #:bg-pattern-id
+   #:bg-pattern-name
+   #:bg-pattern-type
+   #:bg-pattern-colors
+   #:bg-pattern-gradient-angle
+   #:bg-pattern-blur
+   #:bg-pattern-darken
+   #:bg-pattern-opacity
+   #:create-background-pattern
+   #:get-background-pattern
+   #:list-background-patterns
+   #:delete-background-pattern
+   #:set-chat-background
+   #:get-chat-background
+   #:remove-chat-background
+   #:get-all-chat-backgrounds
+   #:create-gradient-background
+   #:create-solid-background
+   #:create-pattern-background
+   #:preview-background
+   #:get-background-stats
+
    #:register-update-handler
    #:unregister-update-handler
    #:clear-update-handlers

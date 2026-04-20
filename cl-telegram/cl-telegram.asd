@@ -215,7 +215,8 @@
                (:file "bot-api-9-5-tests")
                (:file "chat-folders-tests")
                (:file "notifications-v0.32-tests")
-               (:file "telegram-business-tests")))
+               (:file "telegram-business-tests")
+               (:file "chat-backgrounds-tests")))
 
 ;; Documentation system
 (asdf:defsystem #:cl-telegram/docs

@@ -4,8 +4,9 @@
 ;;; - Create and manage color themes
 ;;; - Custom chat backgrounds
 ;;; - Font size adjustment
+;;; - Background patterns and gradients (v0.33.0)
 ;;;
-;;; Version: 0.27.0
+;;; Version: 0.33.0
 
 (in-package #:cl-telegram/api)
 
@@ -273,3 +274,273 @@
           :active-theme (manager-active-theme manager)
           :font-size (manager-font-size manager)
           :app-icon (manager-app-icon manager))))
+
+;;; ============================================================================
+;;; Section: Chat Backgrounds Enhanced (v0.33.0)
+;;; ============================================================================
+
+(defclass chat-background-pattern ()
+  ((pattern-id :initarg :pattern-id :accessor bg-pattern-id)
+   (name :initarg :name :accessor bg-pattern-name)
+   (type :initarg :type :initform :solid :accessor bg-pattern-type)
+   (colors :initarg :colors :initform nil :accessor bg-pattern-colors)
+   (gradient-angle :initarg :gradient-angle :initform 45 :accessor bg-pattern-gradient-angle)
+   (blurAmount :initarg :blur-amount :initform 0 :accessor bg-pattern-blur)
+   (darkenAmount :initarg :darken-amount :initform 0 :accessor bg-pattern-darken)
+   (opacity :initarg :opacity :initform 1 :accessor bg-pattern-opacity)))
+
+(defvar *background-patterns* (make-hash-table :test 'equal)
+  "Hash table storing background patterns")
+
+(defvar *chat-backgrounds-enhanced* (make-hash-table :test 'equal)
+  "Hash table storing enhanced chat backgrounds")
+
+(defun create-background-pattern (name type &key (colors '("#000000" "#FFFFFF"))
+                                       (gradient-angle 45)
+                                       (blur 0)
+                                       (darken 0)
+                                       (opacity 1))
+  "Create a custom background pattern.
+
+   Args:
+     name: Pattern name
+     type: Pattern type (:solid :gradient :image :pattern)
+     colors: List of colors for gradient
+     gradient-angle: Gradient angle in degrees
+     blur: Blur amount (0-100)
+     darken: Darken amount (0-100)
+     opacity: Opacity (0.0-1.0)
+
+   Returns:
+     Chat-background-pattern instance
+
+   Example:
+     (create-background-pattern \"Sunset Gradient\" :gradient
+                                :colors '(\"#FF6B6B\" \"#FFE66D\")
+                                :gradient-angle 45)"
+  (let* ((pattern-id (format nil "bgp_~A_~A" name (get-universal-time)))
+         (pattern (make-instance 'chat-background-pattern
+                                 :pattern-id pattern-id
+                                 :name name
+                                 :type type
+                                 :colors colors
+                                 :gradient-angle gradient-angle
+                                 :blur-amount blur
+                                 :darken-amount darken
+                                 :opacity opacity)))
+    (setf (gethash pattern-id *background-patterns*) pattern)
+    (log:info "Background pattern created: ~A" name)
+    pattern))
+
+(defun get-background-pattern (pattern-id)
+  "Get a background pattern by ID.
+
+   Args:
+     pattern-id: Pattern identifier
+
+   Returns:
+     Chat-background-pattern instance or NIL
+
+   Example:
+     (get-background-pattern \"bgp_SunsetGradient_123\")"
+  (gethash pattern-id *background-patterns*))
+
+(defun list-background-patterns ()
+  "List all background patterns.
+
+   Returns:
+     List of chat-background-pattern instances
+
+   Example:
+     (list-background-patterns)"
+  (let ((patterns nil))
+    (maphash (lambda (k v)
+               (declare (ignore k))
+               (push v patterns))
+             *background-patterns*)
+    patterns))
+
+(defun delete-background-pattern (pattern-id)
+  "Delete a background pattern.
+
+   Args:
+     pattern-id: Pattern identifier
+
+   Returns:
+     T on success, NIL on error
+
+   Example:
+     (delete-background-pattern \"bgp_123\")"
+  (let ((pattern (gethash pattern-id *background-patterns*)))
+    (when pattern
+      (remhash pattern-id *background-patterns*)
+      (log:info "Background pattern deleted: ~A" pattern-id)
+      t)))
+
+(defun set-chat-background (chat-id pattern-id &key (custom-settings nil))
+  "Set custom background for a chat.
+
+   Args:
+     chat-id: Chat identifier
+     pattern-id: Background pattern ID
+     custom-settings: Optional custom settings override
+
+   Returns:
+     T on success, NIL on error
+
+   Example:
+     (set-chat-background 123 \"bgp_SunsetGradient_123\"
+                          :custom-settings '(:opacity 0.8 :blur 10))"
+  (let ((pattern (gethash pattern-id *background-patterns*)))
+    (unless pattern
+      (return-from set-chat-background (values nil "Pattern not found")))
+
+    (let ((bg (make-instance 'chat-background
+                             :chat-id chat-id
+                             :type (bg-pattern-type pattern)
+                             :value pattern-id
+                             :blur (or (getf custom-settings :blur) (bg-pattern-blur pattern))
+                             :darken (or (getf custom-settings :darken) (bg-pattern-darken pattern))
+                             :opacity (or (getf custom-settings :opacity) (bg-pattern-opacity pattern)))))
+      (setf (gethash chat-id *chat-backgrounds-enhanced*) bg)
+      (log:info "Chat background set for chat ~A" chat-id)
+      t)))
+
+(defun get-chat-background (chat-id)
+  "Get background for a specific chat.
+
+   Args:
+     chat-id: Chat identifier
+
+   Returns:
+     Chat-background instance or NIL
+
+   Example:
+     (get-chat-background 123)"
+  (gethash chat-id *chat-backgrounds-enhanced*))
+
+(defun remove-chat-background (chat-id)
+  "Remove custom background from a chat.
+
+   Args:
+     chat-id: Chat identifier
+
+   Returns:
+     T on success, NIL on error
+
+   Example:
+     (remove-chat-background 123)"
+  (let ((bg (gethash chat-id *chat-backgrounds-enhanced*)))
+    (when bg
+      (remhash chat-id *chat-backgrounds-enhanced*)
+      (log:info "Chat background removed for chat ~A" chat-id)
+      t)))
+
+(defun get-all-chat-backgrounds ()
+  "Get all chat backgrounds.
+
+   Returns:
+     List of chat-background instances
+
+   Example:
+     (get-all-chat-backgrounds)"
+  (let ((backgrounds nil))
+    (maphash (lambda (k v)
+               (declare (ignore k))
+               (push v backgrounds))
+             *chat-backgrounds-enhanced*)
+    backgrounds))
+
+(defun create-gradient-background (name start-color end-color &key (angle 45))
+  "Create a gradient background pattern.
+
+   Args:
+     name: Pattern name
+     start-color: Start color (hex)
+     end-color: End color (hex)
+     angle: Gradient angle in degrees
+
+   Returns:
+     Chat-background-pattern instance
+
+   Example:
+     (create-gradient-background \"Ocean Gradient\" \"#0066CC\" \"#00CC66\" :angle 90)"
+  (create-background-pattern name :gradient
+                             :colors (list start-color end-color)
+                             :gradient-angle angle))
+
+(defun create-solid-background (name color)
+  "Create a solid color background pattern.
+
+   Args:
+     name: Pattern name
+     color: Background color (hex)
+
+   Returns:
+     Chat-background-pattern instance
+
+   Example:
+     (create-solid-background \"Dark Gray\" \"#1a1a1a\")"
+  (create-background-pattern name :solid :colors (list color)))
+
+(defun create-pattern-background (name colors &key (pattern-type :stripes))
+  "Create a pattern background.
+
+   Args:
+     name: Pattern name
+     colors: List of colors
+     pattern-type: Pattern type (:stripes :dots :grid)
+
+   Returns:
+     Chat-background-pattern instance
+
+   Example:
+     (create-pattern-background \"Striped\" '(\"#FF6B6B\" \"#FFFFFF\")
+                                :pattern-type :stripes)"
+  (create-background-pattern name :pattern
+                             :colors colors
+                             :gradient-angle 0))
+
+(defun preview-background (pattern-id &key (width 400) (height 300))
+  "Generate a preview of background pattern.
+
+   Args:
+     pattern-id: Pattern identifier
+     width: Preview width in pixels
+     height: Preview height in pixels
+
+   Returns:
+     Image data or NIL
+
+   Example:
+     (preview-background \"bgp_123\" :width 400 :height 300)"
+  (let ((pattern (gethash pattern-id *background-patterns*)))
+    (unless pattern
+      (return-from preview-background nil))
+
+    ;; Return preview parameters (actual rendering depends on UI)
+    (list :type (bg-pattern-type pattern)
+          :colors (bg-pattern-colors pattern)
+          :angle (bg-pattern-gradient-angle pattern)
+          :width width
+          :height height)))
+
+(defun get-background-stats ()
+  "Get background statistics.
+
+   Returns:
+     Plist with statistics
+
+   Example:
+     (get-background-stats)"
+  (let ((pattern-count 0)
+        (bg-count 0))
+    (maphash (lambda (k v) (declare (ignore k v)) (incf pattern-count))
+             *background-patterns*)
+    (maphash (lambda (k v) (declare (ignore k v)) (incf bg-count))
+             *chat-backgrounds-enhanced*)
+    (list :pattern-count pattern-count
+          :chat-backgrounds bg-count
+          :most-used-pattern (if (> bg-count 0) "N/A" nil))))
+
+;;; End of custom-themes.lisp
