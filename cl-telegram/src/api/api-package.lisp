@@ -1659,4 +1659,90 @@
    #:enable-auto-translation
    #:disable-auto-translation
    #:auto-translation-enabled-p
-   #:supported-translation-languages))
+   #:supported-translation-languages
+
+   ;; Bot API 8.1-8.3 Extensions (2025)
+   ;; Verification Features (8.2)
+   #:verification-result
+   #:verification-success
+   #:verification-description
+   #:verification-id
+   #:verification-date
+   #:verification-verified-by
+   #:verify-user
+   #:verify-chat
+   #:remove-user-verification
+   #:remove-chat-verification
+
+   ;; Gift Features (8.3)
+   #:gift
+   #:gifts
+   #:transaction-partner-chat
+   #:gift-id
+   #:gift-name
+   #:gift-description
+   #:gift-upgrade-star-count
+   #:gift-total-count
+   #:gift-owner-count
+   #:gift-icon
+   #:gift-is-limited
+   #:gift-is-exclusive
+   #:gifts-list
+   #:gifts-total-count
+   #:transaction-partner-chat-chat
+   #:transaction-partner-chat-amount
+   #:transaction-partner-chat-transaction-id
+   #:transaction-partner-chat-date
+   #:*available-gifts-cache*
+   #:*gifts-cache-ttl*
+   #:*gifts-last-fetch*
+   #:get-available-gifts
+   #:send-gift
+   #:clear-gifts-cache
+
+   ;; Video Enhancements (8.3)
+   #:video-cover
+   #:video-cover-media-id
+   #:video-cover-media-type
+   #:video-cover-timestamp
+   #:video-cover-file-id
+   #:send-video  ; Enhanced with cover and start-timestamp
+   #:forward-message-with-timestamp
+   #:copy-message-with-timestamp
+
+   ;; Business Features (8.1)
+   #:business-connection
+   #:business-intro
+   #:business-location
+   #:business-opening-hours
+   #:business-opening-hours-interval
+   #:business-connection-id
+   #:business-connection-user
+   #:business-connection-user-chat-id
+   #:business-connection-user-username
+   #:business-connection-date
+   #:business-connection-can-reply
+   #:business-connection-is-enabled
+   #:business-connection-has-main-username
+   #:business-intro-title
+   #:business-intro-message
+   #:business-intro-sticker-id
+   #:business-location-address
+   #:business-location-latitude
+   #:business-location-longitude
+   #:business-location-name
+   #:business-opening-hours-schedule
+   #:business-opening-hours-timezone
+   #:business-opening-hours-intervals
+   #:business-interval-start-minute
+   #:business-interval-end-minute
+   #:*business-connections-cache*
+   #:get-business-connection
+   #:get-business-intro
+   #:get-business-location
+   #:get-business-opening-hours
+   #:clear-business-connection-cache
+   #:business-connection-cached-p
+
+   ;; Service Message Reactions (8.3)
+   #:send-service-message-reaction))

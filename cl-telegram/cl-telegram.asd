@@ -99,7 +99,8 @@
                              (:file "notifications")
                              (:file "contacts-enhanced")
                              (:file "utilities")
-                             (:file "bot-api-8")))
+                             (:file "bot-api-8")
+                             (:file "bot-api-8-extensions")))
                ;; UI layer
                (:module "ui"
                 :serial t
@@ -161,6 +162,7 @@
                (:file "payment-business-tests")
                (:file "v0.22.0-tests")
                (:file "bot-api-8-tests")
+               (:file "bot-api-8-extensions-tests")
                (:file "image-processing-tests")))
 
 ;; Documentation system
