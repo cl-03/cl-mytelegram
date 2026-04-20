@@ -69,4 +69,13 @@
    ;; Theme Switching
    #:switch-theme
    #:create-theme-switcher
-   #:*current-theme*))
+   #:*current-theme*
+
+   ;; Web Server (v0.24.0)
+   #:run-web-server
+   #:stop-web-server
+   #:open-web-ui-in-browser
+   #:enable-realtime-push
+   #:disable-realtime-push
+   #:*web-server-port*
+   #:*web-server-host*))

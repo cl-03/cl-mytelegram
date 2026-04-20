@@ -109,7 +109,8 @@
                              (:file "cli-client")
                              (:file "clog-ui")
                              (:file "clog-components")
-                             (:file "media-viewer")))
+                             (:file "media-viewer")
+                             (:file "web-server")))
                ;; Image processing layer
                (:module "image-processing"
                 :serial t
@@ -122,6 +123,7 @@
                (:module "mobile"
                 :serial t
                 :components ((:file "mobile-package")
+                             (:file "mobile-utilities")
                              (:file "ios-integration")
                              (:file "android-integration")))))
 
