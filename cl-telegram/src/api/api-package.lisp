@@ -2366,4 +2366,64 @@
    #:get-silent-mode-status
    #:notify-settings
    #:notify-settings-silent
-   #:notify-settings-mute-until))
+   #:notify-settings-mute-until
+
+   ;; Telegram Business API (v0.33.0)
+   #:business-account
+   #:business-account-id
+   #:business-account-name
+   #:business-account-description
+   #:business-account-location
+   #:business-account-hours
+   #:business-account-contact
+   #:business-account-verified
+   #:business-account-premium
+   #:business-account-created-at
+   #:business-greeting
+   #:business-greeting-id
+   #:business-greeting-message
+   #:business-greeting-enabled
+   #:business-greeting-chats
+   #:business-auto-reply
+   #:business-auto-reply-id
+   #:business-auto-reply-message
+   #:business-auto-reply-enabled
+   #:business-auto-reply-delay
+   #:business-auto-reply-keywords
+   #:message-label
+   #:message-label-id
+   #:message-label-name
+   #:message-label-color
+   #:message-label-chat
+   #:message-label-messages
+   #:business-chat
+   #:business-chat-id
+   #:business-chat-account
+   #:business-chat-last-message
+   #:business-chat-unread
+   #:business-chat-labels
+   #:business-chat-status
+   #:get-business-account
+   #:create-business-account
+   #:update-business-account
+   #:delete-business-account
+   #:list-business-accounts
+   #:set-business-greeting
+   #:get-business-greeting
+   #:delete-business-greeting
+   #:set-business-auto-reply
+   #:get-business-auto-reply
+   #:delete-business-auto-reply
+   #:create-message-label
+   #:assign-label-to-message
+   #:remove-label-from-message
+   #:get-messages-by-label
+   #:delete-message-label
+   #:get-all-labels
+   #:get-business-chat
+   #:update-business-chat
+   #:get-business-chats
+   #:archive-business-chat
+   #:unarchive-business-chat
+   #:get-business-stats
+   #:send-business-message))

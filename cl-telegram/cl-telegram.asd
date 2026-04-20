@@ -123,7 +123,8 @@
                              (:file "payment-stars")
                              (:file "account-security-enhanced")
                              (:file "message-enhanced")
-                             (:file "bot-api-9-5")))
+                             (:file "bot-api-9-5")
+                             (:file "telegram-business")))
                ;; UI layer
                (:module "ui"
                 :serial t
@@ -213,7 +214,8 @@
                (:file "message-enhanced-tests")
                (:file "bot-api-9-5-tests")
                (:file "chat-folders-tests")
-               (:file "notifications-v0.32-tests")))
+               (:file "notifications-v0.32-tests")
+               (:file "telegram-business-tests")))
 
 ;; Documentation system
 (asdf:defsystem #:cl-telegram/docs
