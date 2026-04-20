@@ -4,7 +4,99 @@ A pure Common Lisp Telegram client implementation using MTProto 2.0 protocol.
 
 ## Status
 
-**Release v0.29.0** - Complete with Mini App CLOG Integration, Bot API 9.4-9.6 support, Custom Emoji Messages, DateTime Entity, Managed Bots, and full Device Access.
+**Release v0.32.0** - Message Streaming, Bot API 9.5-9.6, Chat Folders Enhanced, Notifications v2.0.
+
+**Next: v0.33.0** - Stories API Complete, Telegram Business, Bot API 9.8+ (In Development)
+
+---
+
+## What's New in v0.32.0
+
+### Message Streaming & Enhanced Messaging
+
+Complete streaming message support and advanced messaging features:
+
+- **Streaming Messages** - Character-by-character streaming responses (sendMessageDraft)
+- **Stream Sessions** - Thread-safe session management with locks
+- **Scheduled Messages** - Create, get, delete scheduled messages
+- **Draft Management** - Save, get, delete, clear drafts per chat
+- **Multi-Media Albums** - Send photo/video albums in single message
+- **Message Copy** - Copy messages between chats with attribution
+
+### Bot API 9.5-9.6 Features
+
+Latest Bot API capabilities:
+
+- **Prepared Keyboard Buttons** - Pre-saved buttons for Mini Apps user/chat selection
+- **Member Tags** - Tag management for group members (VIP, Admin, etc.)
+- **Enhanced Polls 2.0** - Advanced polls with description, media, quiz mode
+- **DateTime Entity** - Formatted date/time display in messages
+- **Managed Bots** - Bot managers can create/control child bots
+
+### Chat Folders Enhanced
+
+Better chat organization:
+
+- **Pinned Chats** - Pin chats to top with custom ordering
+- **Unread Marks** - Track and manage unread counts
+- **Mark as Read** - Bulk mark chats as read
+- **Folder Statistics** - View folder stats (chats, pinned, unread)
+
+### Notifications v2.0
+
+Advanced notification management:
+
+- **Silent Mode** - Do Not Disturb with duration control
+- **Global Settings** - System-wide notification preferences
+- **Peer Settings** - Per-chat notification customization
+- **Mute/Unmute** - Temporarily or permanently mute chats
+- **Statistics** - Notification usage analytics
+
+### Code Statistics v0.32.0
+
+- **New Source Files**: 6 (~1,600 lines)
+- **New Test Files**: 4 (~400 lines)
+- **New API Functions**: 100+
+- **Total Coverage**: ~93% Bot API coverage
+
+---
+
+## What's New in v0.31.0
+
+### Chat Folders Management
+
+Complete chat folder organization:
+
+- **Create Folders** - Custom folders with included/excluded chats
+- **Filter Management** - Configure chat filters (unread, muted, pinned, etc.)
+- **Folder Ordering** - Custom sort order for chats within folders
+- **Privacy Settings** - Control folder visibility
+
+### Notifications System
+
+Advanced notification controls:
+
+- **Notification Settings** - Get, update, reset notification preferences
+- **Scope-Based** - Separate settings for private, groups, channels
+- **Preview Control** - Show/hide message preview
+- **Sound Settings** - Enable/disable notification sounds
+- **Priority Levels** - High, normal, low priority notifications
+
+---
+
+## What's New in v0.30.0
+
+### Bot API 9.7 - Device Access via Mini Apps
+
+Complete device integration through CLOG:
+
+- **Location API** - Request and track device geolocation
+- **File Picker** - Browser-based file selection and upload
+- **Notification API** - Browser push notifications
+- **Camera/Microphone** - Media device access (v0.29.0)
+- **Theme Sync** - Telegram WebApp theme integration
+
+---
 
 ## What's New in v0.29.0
 
@@ -312,11 +404,12 @@ Completed:
 
 ## Project Statistics
 
-- **Total Files**: 143 (75 source, 39 tests, 29 docs)
-- **Total Lines**: ~53,000+ lines of Common Lisp code
-- **Test Coverage**: 840+ tests (~93% coverage)
-- **API Functions**: 700+ exported functions
-- **Bot API Version**: 8.0 (November 2024)
+- **Total Files**: 150+ (80+ source, 40+ tests, 30+ docs)
+- **Total Lines**: ~55,000+ lines of Common Lisp code
+- **Test Coverage**: 880+ tests (~93% coverage)
+- **API Functions**: 800+ exported functions
+- **Bot API Version**: 9.7+ (April 2026)
+- **Bot API Coverage**: ~93%
 
 ## Recent Activity (v0.24.0)
 
@@ -362,17 +455,17 @@ Completed:
 | TL Layer | 5 | ~600 |
 | MTProto Layer | 6 | ~500 |
 | Network Layer | 7 | ~700 |
-| API Layer | 51 | ~25,200 |
+| API Layer | 60+ | ~28,000 |
 | UI Layer | 7 | ~3,500 |
 | Image Processing | 7 | ~1,900 |
 | Mobile Layer | 4 | ~1,100 |
-| Tests | 40 | ~12,000 |
-| **Total** | **133** | **~46,300** |
+| Tests | 40+ | ~13,000 |
+| **Total** | **150+** | **~50,100** |
 
 ## Test Coverage
 
-**Total Tests**: 785+
-**Coverage**: ~92%
+**Total Tests**: 880+
+**Coverage**: ~93%
 
 **Test Suites**:
 - Crypto Layer Tests (25 tests)
@@ -380,7 +473,7 @@ Completed:
 - MTProto Protocol Tests (30 tests)
 - Network Layer Tests (35 tests)
 - API Layer Tests (80 tests)
-- Bot API Tests (40 tests)
+- Bot API Tests (60 tests)
 - Stickers Tests (30 tests)
 - Voice Messages Tests (25 tests)
 - Inline Bots 2025 Tests (30 tests)
@@ -393,12 +486,19 @@ Completed:
 - v0.21.0 Features Tests (70 tests)
 - v0.22.0 Features Tests (60 tests)
 - **Bot API 8.0 Tests (25 tests)**
+- **Bot API 9.5 Tests (15 tests)**
+- **Message Enhanced Tests (18 tests)**
+- **Chat Folders Tests (10 tests)**
+- **Notifications Tests (12 tests)**
 - Integration Tests (30 tests)
 
 ## Documentation
 
 - `docs/MTProto_2_0.md` - MTProto protocol specification
 - `docs/API_REFERENCE.md` - Complete API reference
+- `docs/BOT_API_COVERAGE_ANALYSIS.md` - Bot API coverage analysis (NEW v0.32.0)
+- `docs/V0.32.0_DEVELOPMENT_PLAN.md` - v0.32.0 development plan
+- `docs/V0.33.0_DEVELOPMENT_PLAN.md` - v0.33.0 development plan (NEW)
 - `docs/RELEASE_NOTES_v0.19.0.md` - v0.19.0 release notes
 - `docs/RELEASE_NOTES_v0.20.0.md` - v0.20.0 release notes
 - `docs/RELEASE_NOTES_v0.21.0.md` - v0.21.0 release notes
