@@ -71,9 +71,31 @@
 
    Returns:
      List of sticker-set objects"
-  (declare (ignorable query limit))
-  ;; TODO: Implement API call to search sticker sets
-  nil)
+  (handler-case
+      (let* ((connection (get-connection))
+             (request (make-tl-object 'stickers.searchStickerSets
+                                      :q query
+                                      :limit limit)))
+        (rpc-handler-case (rpc-call connection request :timeout 10000)
+          (sticker-error (e)
+            (log-error "Search sticker sets failed: ~a" e)
+            nil)
+          (timeout-error (e)
+            (log-error "Search sticker sets timeout: ~a" e)
+            nil)
+          (:no-error (result)
+            (let ((sets (getf result :sets)))
+              (mapcar (lambda (set-data)
+                        (make-instance 'sticker-set
+                                       :name (getf set-data :name)
+                                       :title (getf set-data :title)
+                                       :is-animated (getf set-data :is-animated)
+                                       :is-video (getf set-data :is-video)
+                                       :stickers (getf set-data :stickers)))
+                      sets)))))
+    (t (e)
+      (log-error "Unexpected error in search-sticker-sets: ~a" e)
+      nil)))
 
 (defun get-all-sticker-sets ()
   "Get all installed sticker sets.
@@ -91,10 +113,26 @@
 
    Returns:
      T on success, NIL on failure"
-  (declare (ignorable set-name))
-  ;; TODO: Implement API call to install sticker set
-  ;; (setf (gethash set-name *sticker-cache*) sticker-set)
-  t)
+  (handler-case
+      (let* ((connection (get-connection))
+             (request (make-tl-object 'stickers.installStickerSet
+                                      :stickerset (make-tl-object 'inputStickerSetShortName
+                                                                  :short-name set-name))))
+        (rpc-handler-case (rpc-call connection request :timeout 10000)
+          (sticker-error (e)
+            (log-error "Install sticker set failed: ~a" e)
+            nil)
+          (timeout-error (e)
+            (log-error "Install sticker set timeout: ~a" e)
+            nil)
+          (:no-error (result)
+            (declare (ignore result))
+            ;; Invalidate cache and refetch
+            (remhash set-name *sticker-cache*)
+            t)))
+    (t (e)
+      (log-error "Unexpected error in install-sticker-set: ~a" e)
+      nil)))
 
 (defun uninstall-sticker-set (set-name)
   "Uninstall a sticker set.
@@ -118,9 +156,29 @@
 
    Returns:
      T on success, NIL on failure"
-  (declare (ignorable set-name sticker file-id emoji))
-  ;; TODO: Implement API call
-  t)
+  (handler-case
+      (let* ((connection (get-connection))
+             (request (make-tl-object 'stickers.addStickerToSet
+                                      :stickerset (make-tl-object 'inputStickerSetShortName
+                                                                  :short-name set-name)
+                                      :sticker (make-tl-object 'inputStickerSetItem
+                                                               :file-id file-id
+                                                               :emoji emoji))))
+        (rpc-handler-case (rpc-call connection request :timeout 10000)
+          (sticker-error (e)
+            (log-error "Add sticker to set failed: ~a" e)
+            nil)
+          (timeout-error (e)
+            (log-error "Add sticker to set timeout: ~a" e)
+            nil)
+          (:no-error (result)
+            (declare (ignore result))
+            ;; Invalidate cache
+            (remhash set-name *sticker-cache*)
+            t)))
+    (t (e)
+      (log-error "Unexpected error in add-sticker-to-set: ~a" e)
+      nil)))
 
 (defun remove-sticker-from-set (set-name sticker-file-id)
   "Remove a sticker from a set.
@@ -131,9 +189,27 @@
 
    Returns:
      T on success, NIL on failure"
-  (declare (ignorable set-name sticker-file-id))
-  ;; TODO: Implement API call
-  t)
+  (handler-case
+      (let* ((connection (get-connection))
+             (request (make-tl-object 'stickers.removeStickerFromSet
+                                      :stickerset (make-tl-object 'inputStickerSetShortName
+                                                                  :short-name set-name)
+                                      :sticker sticker-file-id)))
+        (rpc-handler-case (rpc-call connection request :timeout 10000)
+          (sticker-error (e)
+            (log-error "Remove sticker from set failed: ~a" e)
+            nil)
+          (timeout-error (e)
+            (log-error "Remove sticker from set timeout: ~a" e)
+            nil)
+          (:no-error (result)
+            (declare (ignore result))
+            ;; Invalidate cache
+            (remhash set-name *sticker-cache*)
+            t)))
+    (t (e)
+      (log-error "Unexpected error in remove-sticker-from-set: ~a" e)
+      nil)))
 
 ;;; ### Sticker Upload
 
@@ -151,9 +227,41 @@
      - Static stickers: PNG or WEBP, 512x512, < 64KB
      - Animated stickers: TGS (Lottie), 512x512, < 64KB
      - Video stickers: WEBM, 512x512, < 64KB, < 3s"
-  (declare (ignorable file-path user-id))
-  ;; TODO: Implement file upload
-  nil)
+  (handler-case
+      (let* ((connection (get-connection))
+             (file-data (alexandria:read-file-into-byte-vector file-path))
+             (file-type (cond
+                          ((search ".tgs" file-path :test #'char-equal) :animated)
+                          ((search ".webm" file-path :test #'char-equal) :video)
+                          (t :static))))
+        ;; Validate file size
+        (when (> (length file-data) (* 64 1024))
+          (error "Sticker file too large. Maximum 64KB, got ~aKB"
+                 (truncate (length file-data) 1024)))
+        ;; Upload file
+        (let ((request (make-tl-object 'messages.uploadMedia
+                                       :peer (make-tl-object 'inputPeerUser
+                                                             :user-id (or user-id (get-my-user-id))
+                                                             :access-hash 0)
+                                       :media (make-tl-object 'inputMediaUploadedDocument
+                                                              :file file-data
+                                                              :mime-type (case file-type
+                                                                           (:animated "application/x-tgs")
+                                                                           (:video "video/webm")
+                                                                           (t "image/webp"))
+                                                              :attributes nil))))
+          (rpc-handler-case (rpc-call connection request :timeout 30000)
+            (upload-error (e)
+              (log-error "Upload sticker failed: ~a" e)
+              nil)
+            (timeout-error (e)
+              (log-error "Upload sticker timeout: ~a" e)
+              nil)
+            (:no-error (result)
+              (getf result :file-id)))))
+    (t (e)
+      (log-error "Unexpected error in upload-sticker: ~a" e)
+      nil)))
 
 (defun create-new-sticker-set (user-id name title &key (is-animated nil) (is-video nil))
   "Create a new sticker set.
@@ -169,9 +277,29 @@
      T on success, error on failure
 
    Note: User must be verified to create sticker sets"
-  (declare (ignorable user-id name title is-animated is-video))
-  ;; TODO: Implement API call
-  t)
+  (handler-case
+      (let* ((connection (get-connection))
+             (request (make-tl-object 'stickers.createNewStickerSet
+                                      :user-id user-id
+                                      :name name
+                                      :title title
+                                      :flags (cond
+                                               (is-video 2)
+                                               (is-animated 1)
+                                               (t 0)))))
+        (rpc-handler-case (rpc-call connection request :timeout 10000)
+          (sticker-error (e)
+            (log-error "Create sticker set failed: ~a" e)
+            nil)
+          (timeout-error (e)
+            (log-error "Create sticker set timeout: ~a" e)
+            nil)
+          (:no-error (result)
+            (declare (ignore result))
+            t)))
+    (t (e)
+      (log-error "Unexpected error in create-new-sticker-set: ~a" e)
+      nil)))
 
 ;;; ### Favorite Stickers
 
@@ -302,10 +430,29 @@
 
    Returns:
      Message object on success"
-  (declare (ignorable chat-id file-id reply-to))
-  ;; TODO: Implement API call
-  ;; (send-message chat-id nil :sticker file-id :reply-to reply-to)
-  nil)
+  (handler-case
+      (let* ((connection (get-connection))
+             (request (make-tl-object 'messages.sendMedia
+                                      :peer (make-tl-object 'inputPeerUser :user-id chat-id :access-hash 0)
+                                      :media (make-tl-object 'inputMediaDocument
+                                                             :id (list file-id))
+                                      :reply-to (when reply-to
+                                                  (make-tl-object 'inputMessageReplyTo
+                                                                  :reply-to-msg-id reply-to))
+                                      :message ""
+                                      :random-id (random (expt 2 63)))))
+        (rpc-handler-case (rpc-call connection request :timeout 10000)
+          (sticker-error (e)
+            (log-error "Send sticker failed: ~a" e)
+            nil)
+          (timeout-error (e)
+            (log-error "Send sticker timeout: ~a" e)
+            nil)
+          (:no-error (result)
+            (parse-message-from-tl result))))
+    (t (e)
+      (log-error "Unexpected error in send-sticker: ~a" e)
+      nil)))
 
 (defun get-sticker-from-message (message)
   "Extract sticker from a message.
@@ -337,9 +484,24 @@
 
    Returns:
      File ID of the custom emoji sticker"
-  (declare (ignorable emoji-id))
-  ;; TODO: Implement API call
-  nil)
+  (handler-case
+      (let* ((connection (get-connection))
+             (request (make-tl-object 'messages.getCustomEmojiDocuments
+                                      :document-id (list emoji-id))))
+        (rpc-handler-case (rpc-call connection request :timeout 10000)
+          (emoji-error (e)
+            (log-error "Get custom emoji failed: ~a" e)
+            nil)
+          (timeout-error (e)
+            (log-error "Get custom emoji timeout: ~a" e)
+            nil)
+          (:no-error (result)
+            (let ((docs (getf result :documents)))
+              (when (and docs (> (length docs) 0))
+                (getf (first docs) :file-id)))))
+    (t (e)
+      (log-error "Unexpected error in get-custom-emoji: ~a" e)
+      nil)))
 
 (defun send-custom-emoji (chat-id emoji-id &key (reply-to nil))
   "Send a custom emoji in a chat.
@@ -366,9 +528,34 @@
 
    Returns:
      List of sticker objects"
-  (declare (ignorable query limit))
-  ;; TODO: Implement search
-  nil)
+  (handler-case
+      (let* ((connection (get-connection))
+             (request (make-tl-object 'stickers.searchStickers
+                                      :q query
+                                      :limit limit)))
+        (rpc-handler-case (rpc-call connection request :timeout 10000)
+          (sticker-error (e)
+            (log-error "Search stickers failed: ~a" e)
+            nil)
+          (timeout-error (e)
+            (log-error "Search stickers timeout: ~a" e)
+            nil)
+          (:no-error (result)
+            (let ((stickers (getf result :stickers)))
+              (mapcar (lambda (sticker-data)
+                        (make-instance 'sticker
+                                       :file-id (getf sticker-data :file-id)
+                                       :file-unique-id (getf sticker-data :file-unique-id)
+                                       :width (getf sticker-data :width)
+                                       :height (getf sticker-data :height)
+                                       :is-animated (getf sticker-data :is-animated)
+                                       :is-video (getf sticker-data :is-video)
+                                       :emoji (getf sticker-data :emoji)
+                                       :set-name (getf sticker-data :set-name)))
+                      stickers)))))
+    (t (e)
+      (log-error "Unexpected error in search-stickers: ~a" e)
+      nil)))
 
 (defun get-trending-stickers (&key (limit 10))
   "Get trending stickers.
@@ -378,9 +565,33 @@
 
    Returns:
      List of sticker objects"
-  (declare (ignorable limit))
-  ;; TODO: Implement API call
-  nil)
+  (handler-case
+      (let* ((connection (get-connection))
+             (request (make-tl-object 'stickers.getSuggestedStickers
+                                      :limit limit)))
+        (rpc-handler-case (rpc-call connection request :timeout 10000)
+          (sticker-error (e)
+            (log-error "Get trending stickers failed: ~a" e)
+            nil)
+          (timeout-error (e)
+            (log-error "Get trending stickers timeout: ~a" e)
+            nil)
+          (:no-error (result)
+            (let ((stickers (getf result :stickers)))
+              (mapcar (lambda (sticker-data)
+                        (make-instance 'sticker
+                                       :file-id (getf sticker-data :file-id)
+                                       :file-unique-id (getf sticker-data :file-unique-id)
+                                       :width (getf sticker-data :width)
+                                       :height (getf sticker-data :height)
+                                       :is-animated (getf sticker-data :is-animated)
+                                       :is-video (getf sticker-data :is-video)
+                                       :emoji (getf sticker-data :emoji)
+                                       :set-name (getf sticker-data :set-name)))
+                      stickers)))))
+    (t (e)
+      (log-error "Unexpected error in get-trending-stickers: ~a" e)
+      nil)))
 
 ;;; ### CLOG UI Integration
 
@@ -391,7 +602,7 @@
      win: CLOG window object
      container: Container element
      on-select: Callback function when sticker selected"
-  (declare (ignorable win container on-select))
+  (declare (ignorable win on-select))
   ;; Get all sticker sets
   (let ((sets (get-all-sticker-sets)))
     (if (null sets)
@@ -411,11 +622,15 @@
               (let ((sticker-el (clog:create-element win "div"
                                                      :class "sticker-item"
                                                      :style "cursor: pointer; padding: 5px;")))
-                ;; TODO: Render sticker thumbnail
-                (clog:append! sticker-el
-                              (clog:create-element win "img"
-                                                   :style "width: 64px; height: 64px;"
-                                                   :alt (sticker-emoji sticker)))
+                ;; Render sticker thumbnail
+                (let ((img-el (clog:create-element win "img"
+                                                   :style "width: 64px; height: 64px; object-fit: contain;"
+                                                   :alt (or (sticker-emoji sticker) "sticker"))))
+                  ;; Set image source if file-id available
+                  (when (sticker-file-id sticker)
+                    (setf (clog:attr img-el "src")
+                          (format nil "/sticker/~A" (sticker-file-id sticker))))
+                  (clog:append! sticker-el img-el))
                 (when on-select
                   (clog:on sticker-el :click
                            (lambda (ev)

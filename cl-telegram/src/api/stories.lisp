@@ -74,12 +74,35 @@
 
    Returns:
      List of story objects"
-  (let ((key (format nil \"~A\" owner-id)))
+  (let ((key (format nil "~A" owner-id)))
     (let ((cached (gethash key *stories-cache*)))
       (if cached
           (subseq cached 0 (min limit (length cached)))
-          ;; TODO: Implement API call
-          nil))))
+          ;; Fetch from API
+          (handler-case
+              (let* ((connection (get-connection))
+                     (peer (make-tl-object 'inputPeerUser :user-id owner-id :access-hash 0))
+                     (request (make-tl-object 'stories.getUserStories
+                                              :peer peer
+                                              :offset-id 0
+                                              :limit limit)))
+                (multiple-value-bind (result error)
+                    (rpc-handler-case (rpc-call connection request :timeout 10000)
+                      (tl-rpc-error (e) (values nil (error-message e)))
+                      (timeout-error (e) (values nil :timeout))
+                      (network-error (e) (values nil :network-error)))
+                  (if error
+                      (progn
+                        (log:error "Failed to get stories: ~A" error)
+                        nil)
+                      (let ((stories (parse-stories-from-tl result)))
+                        (setf (gethash key *stories-cache*) stories)
+                        (subseq stories 0 (min limit (length stories)))))))
+            (error (e)
+              (log:error "Exception in get-stories: ~A" e)
+              nil)
+            ;; Return nil on API failure
+            nil))))))
 
 (defun get-all-stories (&key (limit 100))
   "Get all available stories from all contacts.
@@ -89,9 +112,32 @@
 
    Returns:
      List of story objects grouped by owner"
-  (declare (ignorable limit))
-  ;; TODO: Implement API call
-  nil)
+  (handler-case
+      (let* ((connection (get-connection))
+             (request (make-tl-object 'stories.getAllStories
+                                      :offset 0
+                                      :limit limit)))
+        (multiple-value-bind (result error)
+            (rpc-handler-case (rpc-call connection request :timeout 15000)
+              (tl-rpc-error (e) (values nil (error-message e)))
+              (timeout-error (e) (values nil :timeout))
+              (network-error (e) (values nil :network-error)))
+          (if error
+              (progn
+                (log:error "Failed to get all stories: ~A" error)
+                nil)
+              (let ((all-stories (parse-stories-from-tl result)))
+                ;; Cache by owner
+                (loop for story in all-stories
+                      for key = (format nil "~A" (story-owner story))
+                      do (let ((existing (gethash key *stories-cache*)))
+                           (if existing
+                               (pushnew story existing :key #'story-id)
+                               (setf (gethash key *stories-cache*) (list story)))))
+                all-stories))))
+    (error (e)
+      (log:error "Exception in get-all-stories: ~A" e)
+      nil)))
 
 (defun get-unviewed-stories ()
   "Get all unviewed stories.
@@ -136,9 +182,42 @@
 
    Returns:
      Story object on success"
-  (declare (ignorable media caption privacy can-reply can-reshare is-pinned))
-  ;; TODO: Implement API call
-  nil)
+  (handler-case
+      (let* ((connection (get-connection))
+             (media-input (if (typep media 'string)
+                              (make-tl-object 'inputMediaUploadedPhoto
+                                              :file (parse-file-id media)
+                                              :ttl-self-destruct 0)
+                              media))
+             (random-id (random (expt 2 63)))
+             (request (make-tl-object 'stories.sendStory
+                                      :media media-input
+                                      :caption (or caption "")
+                                      :entities nil
+                                      :privacy (make-privacy-settings privacy)
+                                      :can-reply can-reply
+                                      :can-reshare can-reshare
+                                      :random-id random-id)))
+        (multiple-value-bind (result error)
+            (rpc-handler-case (rpc-call connection request :timeout 30000)
+              (tl-rpc-error (e) (values nil (error-message e)))
+              (timeout-error (e) (values nil :timeout))
+              (network-error (e) (values nil :network-error)))
+          (if error
+              (progn
+                (log:error "Failed to post story: ~A" error)
+                nil)
+              (let ((story (parse-story-from-tl result)))
+                (when story
+                  (let ((key (format nil "~A" (story-owner story))))
+                    (let ((existing (gethash key *stories-cache*)))
+                      (if existing
+                          (push story existing)
+                          (setf (gethash key *stories-cache*) (list story)))))
+                  story)))))
+    (error (e)
+      (log:error "Exception in post-story: ~A" e)
+      nil)))
 
 (defun post-story-photo (photo-file-id &key (caption nil) (duration 24))
   "Post a photo story.
@@ -150,9 +229,42 @@
 
    Returns:
      Story object on success"
-  (declare (ignorable photo-file-id caption duration))
-  ;; TODO: Implement API call
-  nil)
+  (handler-case
+      (let* ((connection (get-connection))
+             (media (make-tl-object 'inputMediaUploadedPhoto
+                                    :file (parse-file-id photo-file-id)
+                                    :ttl-self-destruct 0))
+             (random-id (random (expt 2 63)))
+             (expiration-date (+ (get-universal-time) (* duration 3600)))
+             (request (make-tl-object 'stories.sendStory
+                                      :media media
+                                      :caption (or caption "")
+                                      :entities nil
+                                      :privacy (make-privacy-settings 'everybody)
+                                      :can-reply t
+                                      :can-reshare t
+                                      :random-id random-id
+                                      :expire-date expiration-date)))
+        (multiple-value-bind (result error)
+            (rpc-handler-case (rpc-call connection request :timeout 30000)
+              (tl-rpc-error (e) (values nil (error-message e)))
+              (timeout-error (e) (values nil :timeout))
+              (network-error (e) (values nil :network-error)))
+          (if error
+              (progn
+                (log:error "Failed to post story photo: ~A" error)
+                nil)
+              (let ((story (parse-story-from-tl result)))
+                (when story
+                  (let ((key (format nil "~A" (story-owner story))))
+                    (let ((existing (gethash key *stories-cache*)))
+                      (if existing
+                          (push story existing)
+                          (setf (gethash key *stories-cache*) (list story)))))
+                  story)))))
+    (error (e)
+      (log:error "Exception in post-story-photo: ~A" e)
+      nil)))
 
 (defun post-story-video (video-file-id &key (caption nil) (duration 24))
   "Post a video story.
@@ -164,9 +276,43 @@
 
    Returns:
      Story object on success"
-  (declare (ignorable video-file-id caption duration))
-  ;; TODO: Implement API call
-  nil)
+  (handler-case
+      (let* ((connection (get-connection))
+             (media (make-tl-object 'inputMediaUploadedDocument
+                                    :file (parse-file-id video-file-id)
+                                    :mime-type "video/mp4"
+                                    :attributes nil))
+             (random-id (random (expt 2 63)))
+             (expiration-date (+ (get-universal-time) (* duration 3600)))
+             (request (make-tl-object 'stories.sendStory
+                                      :media media
+                                      :caption (or caption "")
+                                      :entities nil
+                                      :privacy (make-privacy-settings 'everybody)
+                                      :can-reply t
+                                      :can-reshare t
+                                      :random-id random-id
+                                      :expire-date expiration-date)))
+        (multiple-value-bind (result error)
+            (rpc-handler-case (rpc-call connection request :timeout 30000)
+              (tl-rpc-error (e) (values nil (error-message e)))
+              (timeout-error (e) (values nil :timeout))
+              (network-error (e) (values nil :network-error)))
+          (if error
+              (progn
+                (log:error "Failed to post story video: ~A" error)
+                nil)
+              (let ((story (parse-story-from-tl result)))
+                (when story
+                  (let ((key (format nil "~A" (story-owner story))))
+                    (let ((existing (gethash key *stories-cache*)))
+                      (if existing
+                          (push story existing)
+                          (setf (gethash key *stories-cache*) (list story)))))
+                  story)))))
+    (error (e)
+      (log:error "Exception in post-story-video: ~A" e)
+      nil)))
 
 (defun delete-story (story-id)
   "Delete a story.
@@ -176,9 +322,30 @@
 
    Returns:
      T on success"
-  (declare (ignorable story-id))
-  ;; TODO: Implement API call
-  nil)
+  (handler-case
+      (let* ((connection (get-connection))
+             (peer (make-tl-object 'inputPeerSelf))
+             (request (make-tl-object 'stories.deleteStories
+                                      :id (list story-id))))
+        (multiple-value-bind (result error)
+            (rpc-handler-case (rpc-call connection request :timeout 10000)
+              (tl-rpc-error (e) (values nil (error-message e)))
+              (timeout-error (e) (values nil :timeout))
+              (network-error (e) (values nil :network-error)))
+          (if error
+              (progn
+                (log:error "Failed to delete story: ~A" error)
+                nil)
+              (progn
+                ;; Remove from cache
+                (maphash (lambda (key stories)
+                           (setf (gethash key *stories-cache*)
+                                 (remove-if (lambda (s) (= (story-id s) story-id)) stories)))
+                         *stories-cache*)
+                t))))
+    (error (e)
+      (log:error "Exception in delete-story: ~A" e)
+      nil)))
 
 (defun edit-story (story-id &key (caption nil) (privacy nil))
   "Edit story properties.
@@ -190,9 +357,37 @@
 
    Returns:
      T on success"
-  (declare (ignorable story-id caption privacy))
-  ;; TODO: Implement API call
-  nil)
+  (handler-case
+      (let* ((connection (get-connection))
+             (peer (make-tl-object 'inputPeerSelf))
+             (request (make-tl-object 'stories.editStory
+                                      :id story-id
+                                      :caption (or caption "")
+                                      :entities nil
+                                      :privacy (when privacy (make-privacy-settings privacy)))))
+        (multiple-value-bind (result error)
+            (rpc-handler-case (rpc-call connection request :timeout 10000)
+              (tl-rpc-error (e) (values nil (error-message e)))
+              (timeout-error (e) (values nil :timeout))
+              (network-error (e) (values nil :network-error)))
+          (if error
+              (progn
+                (log:error "Failed to edit story: ~A" error)
+                nil)
+              (progn
+                ;; Update cache
+                (maphash (lambda (key stories)
+                           (loop for story in stories
+                                 when (= (story-id story) story-id)
+                                 do (when caption
+                                      (setf (slot-value story 'caption) caption))
+                                 when privacy
+                                 do (setf (slot-value story 'privacy) privacy)))
+                         *stories-cache*)
+                t))))
+    (error (e)
+      (log:error "Exception in edit-story: ~A" e)
+      nil)))
 
 (defun pin-story (story-id)
   "Pin story to profile.
@@ -202,9 +397,31 @@
 
    Returns:
      T on success"
-  (declare (ignorable story-id))
-  ;; TODO: Implement API call
-  nil)
+  (handler-case
+      (let* ((connection (get-connection))
+             (peer (make-tl-object 'inputPeerSelf))
+             (request (make-tl-object 'stories.togglePinned
+                                      :id (list story-id))))
+        (multiple-value-bind (result error)
+            (rpc-handler-case (rpc-call connection request :timeout 10000)
+              (tl-rpc-error (e) (values nil (error-message e)))
+              (timeout-error (e) (values nil :timeout))
+              (network-error (e) (values nil :network-error)))
+          (if error
+              (progn
+                (log:error "Failed to pin story: ~A" error)
+                nil)
+              (progn
+                ;; Update cache
+                (maphash (lambda (key stories)
+                           (loop for story in stories
+                                 when (= (story-id story) story-id)
+                                 do (setf (slot-value story 'is-pinned) t)))
+                         *stories-cache*)
+                t))))
+    (error (e)
+      (log:error "Exception in pin-story: ~A" e)
+      nil)))
 
 (defun unpin-story (story-id)
   "Unpin story from profile.
@@ -214,9 +431,31 @@
 
    Returns:
      T on success"
-  (declare (ignorable story-id))
-  ;; TODO: Implement API call
-  nil)
+  (handler-case
+      (let* ((connection (get-connection))
+             (peer (make-tl-object 'inputPeerSelf))
+             (request (make-tl-object 'stories.togglePinned
+                                      :id (list story-id))))
+        (multiple-value-bind (result error)
+            (rpc-handler-case (rpc-call connection request :timeout 10000)
+              (tl-rpc-error (e) (values nil (error-message e)))
+              (timeout-error (e) (values nil :timeout))
+              (network-error (e) (values nil :network-error)))
+          (if error
+              (progn
+                (log:error "Failed to unpin story: ~A" error)
+                nil)
+              (progn
+                ;; Update cache
+                (maphash (lambda (key stories)
+                           (loop for story in stories
+                                 when (= (story-id story) story-id)
+                                 do (setf (slot-value story 'is-pinned) nil)))
+                         *stories-cache*)
+                t))))
+    (error (e)
+      (log:error "Exception in unpin-story: ~A" e)
+      nil)))
 
 ;;; ### Story Privacy
 
@@ -240,8 +479,17 @@
 
    Returns:
      Story-privacy object"
-  ;; TODO: Implement API call
-  (make-instance 'story-privacy :type 'everybody))
+  (handler-case
+      (let* ((connection (get-connection))
+             (request (make-tl-object 'stories.getPrivacy
+                                      :key (make-tl-object 'privacyKeyStory))))
+        (rpc-handler-case (rpc-call connection request :timeout 10000)
+          (t (c)
+            (log-error "Failed to get story privacy: ~A" c)
+            (make-instance 'story-privacy :type 'everybody))))
+    (t (c)
+      (log-error "Error getting story privacy: ~A" c)
+      (make-instance 'story-privacy :type 'everybody))))
 
 ;;; ### Story Interactions
 
@@ -267,9 +515,26 @@
 
    Returns:
      T on success"
-  (declare (ignorable story-id emoji))
-  ;; TODO: Implement API call
-  nil)
+  (handler-case
+      (let* ((connection (get-connection))
+             (peer (make-tl-object 'inputPeerUser :user-id 0 :access-hash 0)) ; Owner ID needed
+             (request (make-tl-object 'stories.sendReaction
+                                      :peer peer
+                                      :story-id story-id
+                                      :reaction (make-tl-object 'messageReactionEmoji :emoji emoji))))
+        (multiple-value-bind (result error)
+            (rpc-handler-case (rpc-call connection request :timeout 10000)
+              (tl-rpc-error (e) (values nil (error-message e)))
+              (timeout-error (e) (values nil :timeout))
+              (network-error (e) (values nil :network-error)))
+          (if error
+              (progn
+                (log:error "Failed to send story reaction: ~A" error)
+                nil)
+              t)))
+    (error (e)
+      (log:error "Exception in send-story-reaction: ~A" e)
+      nil)))
 
 (defun get-story-views (story-id &key (limit 100))
   "Get users who viewed the story.
@@ -280,9 +545,27 @@
 
    Returns:
      List of user objects"
-  (declare (ignorable story-id limit))
-  ;; TODO: Implement API call
-  nil)
+  (handler-case
+      (let* ((connection (get-connection))
+             (peer (make-tl-object 'inputPeerUser :user-id 0 :access-hash 0)) ; Owner ID needed
+             (request (make-tl-object 'stories.getStoryViews
+                                      :peer peer
+                                      :id story-id
+                                      :offset 0
+                                      :limit limit)))
+        (multiple-value-bind (result error)
+            (rpc-handler-case (rpc-call connection request :timeout 10000)
+              (tl-rpc-error (e) (values nil (error-message e)))
+              (timeout-error (e) (values nil :timeout))
+              (network-error (e) (values nil :network-error)))
+          (if error
+              (progn
+                (log:error "Failed to get story views: ~A" error)
+                nil)
+              (parse-story-viewers-from-tl result))))
+    (error (e)
+      (log:error "Exception in get-story-views: ~A" e)
+      nil)))
 
 (defun get-story-reactions (story-id)
   "Get reactions on a story.
@@ -305,9 +588,32 @@
 
    Returns:
      Message object on success"
-  (declare (ignorable story-id to-chat-id))
-  ;; TODO: Implement API call
-  nil)
+  (handler-case
+      (let* ((connection (get-connection))
+             (from-peer (make-tl-object 'inputPeerUser :user-id 0 :access-hash 0)) ; Owner ID needed
+             (to-peer (make-tl-object 'inputPeerUser :user-id to-chat-id :access-hash 0))
+             (random-id (random (expt 2 63)))
+             (request (make-tl-object 'messages.forwardMessages
+                                      :from-peer from-peer
+                                      :to-peer to-peer
+                                      :id (list story-id)
+                                      :random-id (list random-id)
+                                      :as-story t
+                                      :drop-author nil
+                                      :drop-media-captions nil)))
+        (multiple-value-bind (result error)
+            (rpc-handler-case (rpc-call connection request :timeout 10000)
+              (tl-rpc-error (e) (values nil (error-message e)))
+              (timeout-error (e) (values nil :timeout))
+              (network-error (e) (values nil :network-error)))
+          (if error
+              (progn
+                (log:error "Failed to forward story: ~A" error)
+                nil)
+              (parse-message-from-tl result))))
+    (error (e)
+      (log:error "Exception in forward-story: ~A" e)
+      nil)))
 
 (defun reply-to-story (story-id text &key (media nil))
   "Send reply to a story.
@@ -319,9 +625,39 @@
 
    Returns:
      Message object on success"
-  (declare (ignorable story-id text media))
-  ;; TODO: Implement API call
-  nil)
+  (handler-case
+      (let* ((connection (get-connection))
+             (peer (make-tl-object 'inputPeerUser :user-id 0 :access-hash 0)) ; Owner ID needed
+             (message (if media
+                          (make-media-message media text)
+                          (make-tl-object 'inputMessageText
+                                          :message text
+                                          :entities nil
+                                          :clear-draft nil)))
+             (random-id (random (expt 2 63)))
+             (reply-to (make-tl-object 'inputMessageReplyToStory
+                                       :peer peer
+                                       :story-id story-id))
+             (request (make-tl-object 'messages.sendMessage
+                                      :peer peer
+                                      :message message
+                                      :random-id random-id
+                                      :schedule-date 0
+                                      :reply-to reply-to
+                                      :reply-markup nil)))
+        (multiple-value-bind (result error)
+            (rpc-handler-case (rpc-call connection request :timeout 30000)
+              (tl-rpc-error (e) (values nil (error-message e)))
+              (timeout-error (e) (values nil :timeout))
+              (network-error (e) (values nil :network-error)))
+          (if error
+              (progn
+                (log:error "Failed to reply to story: ~A" error)
+                nil)
+              (parse-message-from-tl result))))
+    (error (e)
+      (log:error "Exception in reply-to-story: ~A" e)
+      nil)))
 
 ;;; ### Story Highlights
 
@@ -335,9 +671,33 @@
 
    Returns:
      Story-highlight object on success"
-  (declare (ignorable title cover-media story-ids))
-  ;; TODO: Implement API call
-  nil)
+  (handler-case
+      (let* ((connection (get-connection))
+             (random-id (random (expt 2 63)))
+             (request (make-tl-object 'stories.createHighlight
+                                      :title title
+                                      :cover (when cover-media
+                                               (make-tl-object 'inputChatPhotoUploaded
+                                                               :file (parse-file-id cover-media)))
+                                      :stories (or story-ids nil)
+                                      :random-id random-id)))
+        (multiple-value-bind (result error)
+            (rpc-handler-case (rpc-call connection request :timeout 10000)
+              (tl-rpc-error (e) (values nil (error-message e)))
+              (timeout-error (e) (values nil :timeout))
+              (network-error (e) (values nil :network-error)))
+          (if error
+              (progn
+                (log:error "Failed to create highlight: ~A" error)
+                nil)
+              (let ((highlight (parse-highlight-from-tl result)))
+                (when highlight
+                  (let ((key (format nil "~A" (highlight-id highlight))))
+                    (setf (gethash key *highlights-cache*) (list highlight)))
+                  highlight)))))
+    (error (e)
+      (log:error "Exception in create-highlight: ~A" e)
+      nil)))
 
 (defun get-highlights (&key (owner-id nil))
   "Get story highlights.
@@ -375,9 +735,37 @@
 
    Returns:
      T on success"
-  (declare (ignorable highlight-id title cover-media))
-  ;; TODO: Implement API call
-  nil)
+  (handler-case
+      (let* ((connection (get-connection))
+             (request (make-tl-object 'stories.editHighlight
+                                      :id highlight-id
+                                      :title (or title "")
+                                      :cover (when cover-media
+                                               (make-tl-object 'inputChatPhotoUploaded
+                                                               :file (parse-file-id cover-media))))))
+        (multiple-value-bind (result error)
+            (rpc-handler-case (rpc-call connection request :timeout 10000)
+              (tl-rpc-error (e) (values nil (error-message e)))
+              (timeout-error (e) (values nil :timeout))
+              (network-error (e) (values nil :network-error)))
+          (if error
+              (progn
+                (log:error "Failed to edit highlight: ~A" error)
+                nil)
+              (progn
+                ;; Update cache
+                (loop for key being the hash-keys of *highlights-cache*
+                      for highlights = (gethash key *highlights-cache*)
+                      do (loop for h in highlights
+                               when (= (highlight-id h) highlight-id)
+                               do (when title
+                                    (setf (slot-value h 'title) title))
+                                  (when cover-media
+                                    (setf (slot-value h 'cover-media) cover-media))))
+                t))))
+    (error (e)
+      (log:error "Exception in edit-highlight: ~A" e)
+      nil)))
 
 (defun add-stories-to-highlight (highlight-id story-ids)
   "Add stories to highlight.
@@ -388,9 +776,24 @@
 
    Returns:
      T on success"
-  (declare (ignorable highlight-id story-ids))
-  ;; TODO: Implement API call
-  nil)
+  (handler-case
+      (let* ((connection (get-connection))
+             (request (make-tl-object 'stories.addHighlightStory
+                                      :id highlight-id
+                                      :id-story story-ids)))
+        (multiple-value-bind (result error)
+            (rpc-handler-case (rpc-call connection request :timeout 10000)
+              (tl-rpc-error (e) (values nil (error-message e)))
+              (timeout-error (e) (values nil :timeout))
+              (network-error (e) (values nil :network-error)))
+          (if error
+              (progn
+                (log:error "Failed to add stories to highlight: ~A" error)
+                nil)
+              t)))
+    (error (e)
+      (log:error "Exception in add-stories-to-highlight: ~A" e)
+      nil)))
 
 (defun remove-highlight (highlight-id)
   "Remove a highlight.
@@ -400,9 +803,29 @@
 
    Returns:
      T on success"
-  (declare (ignorable highlight-id))
-  ;; TODO: Implement API call
-  nil)
+  (handler-case
+      (let* ((connection (get-connection))
+             (request (make-tl-object 'stories.deleteHighlight
+                                      :id highlight-id)))
+        (multiple-value-bind (result error)
+            (rpc-handler-case (rpc-call connection request :timeout 10000)
+              (tl-rpc-error (e) (values nil (error-message e)))
+              (timeout-error (e) (values nil :timeout))
+              (network-error (e) (values nil :network-error)))
+          (if error
+              (progn
+                (log:error "Failed to remove highlight: ~A" error)
+                nil)
+              (progn
+                ;; Remove from cache
+                (loop for key being the hash-keys of *highlights-cache*
+                      do (setf (gethash key *highlights-cache*)
+                               (remove-if (lambda (h) (= (highlight-id h) highlight-id))
+                                          (gethash key *highlights-cache*))))
+                t))))
+    (error (e)
+      (log:error "Exception in remove-highlight: ~A" e)
+      nil)))
 
 ;;; ### Stories Viewing
 

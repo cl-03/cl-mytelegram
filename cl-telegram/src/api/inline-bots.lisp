@@ -171,9 +171,39 @@
 
    Returns:
      T on success"
-  (declare (ignorable query-id results cache-time is-personal next-offset switch-pm-text switch-pm-parameter))
-  ;; TODO: Implement API call
-  t)
+  (handler-case
+      (let* ((connection (get-connection))
+             (tl-results (mapcar (lambda (result)
+                                   (make-tl-object 'inputBotInlineResult
+                                                   :id (inline-result-id result)
+                                                   :type (inline-result-type result)
+                                                   :title (or (inline-result-title result) "")
+                                                   :description (or (inline-result-description result) "")
+                                                   :message (inline-result-message-text result)))
+                                 results))
+             (request (make-tl-object 'messages.setInlineBotResults
+                                      :query-id query-id
+                                      :results tl-results
+                                      :cache-time cache-time
+                                      :private is-personal
+                                      :next-offset (or next-offset "")
+                                      :switch-pm (when switch-pm-text
+                                                   (make-tl-object 'botInlinePM
+                                                                   :text switch-pm-text
+                                                                   :start-param (or switch-pm-parameter ""))))))
+        (rpc-handler-case (rpc-call connection request :timeout 10000)
+          (inline-bot-error (e)
+            (log-error "Inline bot answer failed: ~a" e)
+            nil)
+          (timeout-error (e)
+            (log-error "Inline bot answer timeout: ~a" e)
+            nil)
+          (:no-error (result)
+            (declare (ignore result))
+            t)))
+    (t (e)
+      (log-error "Unexpected error in answer-inline-query: ~a" e)
+      nil)))
 
 (defun answer-callback-query (callback-query-id &key (text nil) (show-alert nil) (url nil) (cache-time 0))
   "Answer callback query.
@@ -187,9 +217,28 @@
 
    Returns:
      T on success"
-  (declare (ignorable callback-query-id text show-alert url cache-time))
-  ;; TODO: Implement API call
-  t)
+  (handler-case
+      (let* ((connection (get-connection))
+             (request (make-tl-object 'messages.sendWebViewRequestResult
+                                      :query-id callback-query-id
+                                      :result (make-tl-object 'botCallbackAnswer
+                                                              :text (or text "")
+                                                              :alert show-alert
+                                                              :url (or url "")
+                                                              :cache-time cache-time))))
+        (rpc-handler-case (rpc-call connection request :timeout 10000)
+          (callback-query-error (e)
+            (log-error "Callback query answer failed: ~a" e)
+            nil)
+          (timeout-error (e)
+            (log-error "Callback query answer timeout: ~a" e)
+            nil)
+          (:no-error (result)
+            (declare (ignore result))
+            t)))
+    (t (e)
+      (log-error "Unexpected error in answer-callback-query: ~a" e)
+      nil)))
 
 ;;; ### Creating Inline Results
 
@@ -337,9 +386,13 @@
 
    Returns:
      Inline-result object"
-  (declare (ignorable id latitude longitude title horizontal-accuracy))
-  ;; TODO: Implement location result
-  nil)
+  (make-instance 'inline-result
+                 :id id
+                 :type "location"
+                 :title title
+                 :message-text (format nil "~f,~f" latitude longitude)
+                 :description (when horizontal-accuracy
+                                (format nil "Accuracy: ~am" horizontal-accuracy))))
 
 (defun make-inline-result-venue (id latitude longitude title address &key (foursquare-id nil) (foursquare-type nil))
   "Create venue inline result.
@@ -355,9 +408,14 @@
 
    Returns:
      Inline-result object"
-  (declare (ignorable id latitude longitude title address foursquare-id foursquare-type))
-  ;; TODO: Implement venue result
-  nil)
+  (make-instance 'inline-result
+                 :id id
+                 :type "venue"
+                 :title title
+                 :description address
+                 :message-text (format nil "~f,~f" latitude longitude)
+                 :input-message-content (list :foursquare-id foursquare-id
+                                              :foursquare-type foursquare-type)))
 
 (defun make-inline-result-contact (id phone-number first-name &key (last-name nil) (vcard nil))
   "Create contact inline result.
@@ -371,9 +429,15 @@
 
    Returns:
      Inline-result object"
-  (declare (ignorable id phone-number first-name last-name vcard))
-  ;; TODO: Implement contact result
-  nil)
+  (make-instance 'inline-result
+                 :id id
+                 :type "contact"
+                 :title (format nil "~a ~a" first-name (or last-name ""))
+                 :message-text phone-number
+                 :input-message-content (list :phone-number phone-number
+                                              :first-name first-name
+                                              :last-name last-name
+                                              :vcard vcard)))
 
 (defun make-inline-result-game (id game-short-name)
   "Create game inline result.
@@ -519,9 +583,27 @@
 
    Returns:
      T on success"
-  (declare (ignorable bot-token inline-message-id data button-id))
-  ;; TODO: Implement API call
-  t)
+  (handler-case
+      (let* ((connection (get-connection))
+             (request (make-tl-object 'messages.sendWebViewResultMessage
+                                      :bot-id bot-token
+                                      :query-id inline-message-id
+                                      :result (make-tl-object 'inputWebViewResult
+                                                              :data data
+                                                              :button-id (or button-id "")))))
+        (rpc-handler-case (rpc-call connection request :timeout 10000)
+          (web-app-error (e)
+            (log-error "Web app data send failed: ~a" e)
+            nil)
+          (timeout-error (e)
+            (log-error "Web app data send timeout: ~a" e)
+            nil)
+          (:no-error (result)
+            (declare (ignore result))
+            t)))
+    (t (e)
+      (log-error "Unexpected error in send-web-app-data: ~a" e)
+      nil)))
 
 ;;; ### Processing Updates
 
@@ -844,12 +926,13 @@
 
    Returns:
      Inline-result object with spoiler support"
-  (declare (ignorable spoiler-text))
-  ;; TODO: Implement spoiler overlay
   (make-instance 'inline-result
                  :id id
                  :type (string-downcase (string result-type))
-                 :message-text caption))
+                 :message-text caption
+                 :input-message-content (list :media-url media-url
+                                              :thumb-url thumb-url
+                                              :spoiler-text spoiler-text)))
 
 (defun make-inline-result-extended-media (result-type id media-url &key (width nil) (height nil) (duration nil) (supports-streaming nil))
   "Create inline result with extended media properties.
@@ -936,9 +1019,51 @@
 
    Returns:
      T on success"
-  (declare (ignorable query-id results cache-time is-personal next-offset switch-pm-text switch-pm-parameter button-type context))
-  ;; TODO: Implement extended API call
-  t)
+  (handler-case
+      (let* ((connection (get-connection))
+             (tl-results (mapcar (lambda (result)
+                                   (if (typep result 'inline-result-with-effects)
+                                       (let ((base (effects-result result))
+                                             (effects (effects-visual-effects result)))
+                                         (make-tl-object 'inputBotInlineResultWithEffects
+                                                         :id (inline-result-id base)
+                                                         :type (inline-result-type base)
+                                                         :effects (mapcar (lambda (eff)
+                                                                          (make-tl-object 'botInlineVisualEffect
+                                                                                          :type (visual-effect-type eff)
+                                                                                          :start-x (or (visual-effect-start-x eff) 0.5)
+                                                                                          :start-y (or (visual-effect-start-y eff) 0.5)
+                                                                                          :intensity (visual-effect-intensity eff)))
+                                                                        effects)))
+                                       (make-tl-object 'inputBotInlineResult
+                                                       :id (inline-result-id result)
+                                                       :type (inline-result-type result)
+                                                       :title (or (inline-result-title result) "")
+                                                       :description (or (inline-result-description result) ""))))
+                                 results))
+             (request (make-tl-object 'messages.setInlineBotResults
+                                      :query-id query-id
+                                      :results tl-results
+                                      :cache-time cache-time
+                                      :private is-personal
+                                      :button-type (or button-type :standard)
+                                      :context (when context
+                                                 (make-tl-object 'inlineQueryContext
+                                                                 :gallery-layout (context-gallery-layout context)
+                                                                 :personal (context-personal-results context))))))
+        (rpc-handler-case (rpc-call connection request :timeout 10000)
+          (inline-bot-error (e)
+            (log-error "Extended inline bot answer failed: ~a" e)
+            nil)
+          (timeout-error (e)
+            (log-error "Extended inline bot answer timeout: ~a" e)
+            nil)
+          (:no-error (result)
+            (declare (ignore result))
+            t)))
+    (t (e)
+      (log-error "Unexpected error in answer-inline-query-extended: ~a" e)
+      nil)))
 
 (defun send-paid-media (chat-id media-info &key (caption nil) (parse-mode nil))
   "Send paid media to chat.
@@ -951,9 +1076,29 @@
 
    Returns:
      Message object on success"
-  (declare (ignorable chat-id media-info caption parse-mode))
-  ;; TODO: Implement paid media API
-  nil)
+  (handler-case
+      (let* ((connection (get-connection))
+             (media-type (paid-media-type media-info))
+             (request (make-tl-object 'messages.sendPaidMedia
+                                      :peer (make-tl-object 'inputPeerUser :user-id chat-id :access-hash 0)
+                                      :media (list (make-tl-object 'inputPaidMediaPhoto
+                                                                   :url (paid-media-url media-info)))
+                                      :caption (or caption "")
+                                      :parse-mode (or parse-mode :html)
+                                      :price (paid-media-price media-info)
+                                      :currency (paid-media-currency media-info))))
+        (rpc-handler-case (rpc-call connection request :timeout 10000)
+          (paid-media-error (e)
+            (log-error "Paid media send failed: ~a" e)
+            nil)
+          (timeout-error (e)
+            (log-error "Paid media send timeout: ~a" e)
+            nil)
+          (:no-error (result)
+            (parse-message-from-tl result))))
+    (t (e)
+      (log-error "Unexpected error in send-paid-media: ~a" e)
+      nil)))
 
 ;;; Bot API 9.0+ Business Features
 
@@ -965,12 +1110,31 @@
 
    Returns:
      Business connection plist"
-  (declare (ignorable business-connection-id))
-  ;; TODO: Implement getBusinessConnection API
-  (list :id business-connection-id
-        :user nil
-        :user-chat-id nil
-        :date (get-universal-time)))
+  (handler-case
+      (let* ((connection (get-connection))
+             (request (make-tl-object 'bots.getBusinessConnection
+                                      :connection-id business-connection-id)))
+        (rpc-handler-case (rpc-call connection request :timeout 10000)
+          (business-error (e)
+            (log-error "Get business connection failed: ~a" e)
+            nil)
+          (timeout-error (e)
+            (log-error "Get business connection timeout: ~a" e)
+            nil)
+          (:no-error (result)
+            (list :id business-connection-id
+                  :user (getf result :user)
+                  :user-chat-id (getf result :user_chat_id)
+                  :date (getf result :date)
+                  :can-reply (getf result :can-reply t)
+                  :can-edit (getf result :can-edit t)
+                  :can-delete (getf result :can-delete t)))))
+    (t (e)
+      (log-error "Unexpected error in get-business-connection: ~a" e)
+      (list :id business-connection-id
+            :user nil
+            :user-chat-id nil
+            :date (get-universal-time)))))
 
 (defun get-user-chat-boosts (user-id)
   "Get user chat boosts.
@@ -980,9 +1144,22 @@
 
    Returns:
      List of chat boosts"
-  (declare (ignorable user-id))
-  ;; TODO: Implement getUserChatBoosts API
-  nil)
+  (handler-case
+      (let* ((connection (get-connection))
+             (request (make-tl-object 'premium.getUserChatBoosts
+                                      :user-id user-id)))
+        (rpc-handler-case (rpc-call connection request :timeout 10000)
+          (premium-error (e)
+            (log-error "Get user chat boosts failed: ~a" e)
+            nil)
+          (timeout-error (e)
+            (log-error "Get user chat boosts timeout: ~a" e)
+            nil)
+          (:no-error (result)
+            (getf result :boosts))))
+    (t (e)
+      (log-error "Unexpected error in get-user-chat-boosts: ~a" e)
+      nil)))
 
 ;;; Enhanced Result Types for 2025
 
@@ -1149,9 +1326,36 @@
 
    Returns:
      Message object on success"
-  (declare (ignorable chat-id result-with-effects reply-to-message-id))
-  ;; TODO: Implement API call with animation support
-  t)
+  (handler-case
+      (let* ((connection (get-connection))
+             (base-result (effects-result result-with-effects))
+             (effects (effects-visual-effects result-with-effects))
+             (request (make-tl-object 'messages.sendMedia
+                                      :peer (make-tl-object 'inputPeerUser :user-id chat-id :access-hash 0)
+                                      :media (make-tl-object 'inputMediaWithEffects
+                                                             :type (inline-result-type base-result)
+                                                             :media (inline-result-message-text base-result)
+                                                             :effects (mapcar (lambda (eff)
+                                                                              (make-tl-object 'mediaVisualEffect
+                                                                                              :type (visual-effect-type eff)
+                                                                                              :intensity (visual-effect-intensity eff)))
+                                                                            effects)
+                                                             :animation-type (effects-animation-type result-with-effects))
+                                      :reply-to (when reply-to-message-id
+                                                  (make-tl-object 'inputMessageReplyTo
+                                                                  :reply-to-msg-id reply-to-message-id)))))
+        (rpc-handler-case (rpc-call connection request :timeout 10000)
+          (animation-error (e)
+            (log-error "Send result with animation failed: ~a" e)
+            nil)
+          (timeout-error (e)
+            (log-error "Send result with animation timeout: ~a" e)
+            nil)
+          (:no-error (result)
+            (parse-message-from-tl result))))
+    (t (e)
+      (log-error "Unexpected error in send-inline-result-with-animation: ~a" e)
+      nil)))
 
 (defun get-inline-bot-analytics (bot-token &key (start-date nil) (end-date nil))
   "Get inline bot analytics data.
@@ -1163,12 +1367,27 @@
 
    Returns:
      Analytics plist with :queries, :results, :clicks, :unique-users"
-  (declare (ignorable bot-token start-date end-date))
-  ;; TODO: Implement analytics API
-  (list :queries 0
-        :results 0
-        :clicks 0
-        :unique-users 0))
+  (handler-case
+      (let* ((connection (get-connection))
+             (request (make-tl-object 'bots.getAnalytics
+                                      :bot-id bot-token
+                                      :start-date (or start-date 0)
+                                      :end-date (or end-date (get-universal-time)))))
+        (rpc-handler-case (rpc-call connection request :timeout 10000)
+          (analytics-error (e)
+            (log-error "Get analytics failed: ~a" e)
+            (list :queries 0 :results 0 :clicks 0 :unique-users 0))
+          (timeout-error (e)
+            (log-error "Get analytics timeout: ~a" e)
+            (list :queries 0 :results 0 :clicks 0 :unique-users 0))
+          (:no-error (result)
+            (list :queries (getf result :total_queries)
+                  :results (getf result :total_results)
+                  :clicks (getf result :total_clicks)
+                  :unique-users (getf result :unique_users)))))
+    (t (e)
+      (log-error "Unexpected error in get-inline-bot-analytics: ~a" e)
+      (list :queries 0 :results 0 :clicks 0 :unique-users 0))))
 
 (defun set-inline-bot-business-location (bot-token location)
   "Set business location for inline bot.
@@ -1179,9 +1398,27 @@
 
    Returns:
      T on success"
-  (declare (ignorable bot-token location))
-  ;; TODO: Implement setBusinessLocation API
-  t)
+  (handler-case
+      (let* ((connection (get-connection))
+             (request (make-tl-object 'bots.setBusinessLocation
+                                      :bot-id bot-token
+                                      :location (make-tl-object 'businessLocation
+                                                                :latitude (getf location :latitude)
+                                                                :longitude (getf location :longitude)
+                                                                :address (getf location :address)))))
+        (rpc-handler-case (rpc-call connection request :timeout 10000)
+          (business-error (e)
+            (log-error "Set business location failed: ~a" e)
+            nil)
+          (timeout-error (e)
+            (log-error "Set business location timeout: ~a" e)
+            nil)
+          (:no-error (result)
+            (declare (ignore result))
+            t)))
+    (t (e)
+      (log-error "Unexpected error in set-inline-bot-business-location: ~a" e)
+      nil)))
 
 (defun set-inline-bot-business-hours (bot-token opening-hours)
   "Set business hours for inline bot.
@@ -1192,9 +1429,27 @@
 
    Returns:
      T on success"
-  (declare (ignorable bot-token opening-hours))
-  ;; TODO: Implement setBusinessHours API
-  t)
+  (handler-case
+      (let* ((connection (get-connection))
+             (request (make-tl-object 'bots.setBusinessHours
+                                      :bot-id bot-token
+                                      :hours (make-tl-object 'businessHours
+                                                             :open-time (getf opening-hours :open-time)
+                                                             :close-time (getf opening-hours :close-time)
+                                                             :days-of-week (getf opening-hours :days)))))
+        (rpc-handler-case (rpc-call connection request :timeout 10000)
+          (business-error (e)
+            (log-error "Set business hours failed: ~a" e)
+            nil)
+          (timeout-error (e)
+            (log-error "Set business hours timeout: ~a" e)
+            nil)
+          (:no-error (result)
+            (declare (ignore result))
+            t)))
+    (t (e)
+      (log-error "Unexpected error in set-inline-bot-business-hours: ~a" e)
+      nil)))
 
 (defun create-paid-media-post (bot-token chat-id media-info &key (caption nil) (paid-amount nil))
   "Create paid media post in channel.
@@ -1208,9 +1463,28 @@
 
    Returns:
      Message object on success"
-  (declare (ignorable bot-token chat-id media-info caption paid-amount))
-  ;; TODO: Implement paid media post API
-  nil)
+  (handler-case
+      (let* ((connection (get-connection))
+             (request (make-tl-object 'channels.sendPaidMediaPost
+                                      :channel (make-tl-object 'inputPeerChannel :channel-id chat-id :access-hash 0)
+                                      :bot-id bot-token
+                                      :media (list (make-tl-object 'inputPaidMediaPhoto
+                                                                   :url (paid-media-url media-info)
+                                                                   :media-type (paid-media-type media-info)))
+                                      :caption (or caption "")
+                                      :paid-amount (or paid-amount (paid-media-price media-info)))))
+        (rpc-handler-case (rpc-call connection request :timeout 10000)
+          (paid-media-error (e)
+            (log-error "Create paid media post failed: ~a" e)
+            nil)
+          (timeout-error (e)
+            (log-error "Create paid media post timeout: ~a" e)
+            nil)
+          (:no-error (result)
+            (parse-message-from-tl result))))
+    (t (e)
+      (log-error "Unexpected error in create-paid-media-post: ~a" e)
+      nil)))
 
 (defun answer-web-app-query (web-app-query-id results &key (button-id nil))
   "Answer web app inline query.
@@ -1222,9 +1496,32 @@
 
    Returns:
      T on success"
-  (declare (ignorable web-app-query-id results button-id))
-  ;; TODO: Implement answerWebAppQuery API
-  t)
+  (handler-case
+      (let* ((connection (get-connection))
+             (tl-results (mapcar (lambda (result)
+                                   (make-tl-object 'inputBotInlineResult
+                                                   :id (inline-result-id result)
+                                                   :type (inline-result-type result)
+                                                   :title (or (inline-result-title result) "")
+                                                   :description (or (inline-result-description result) "")))
+                                 results))
+             (request (make-tl-object 'messages.sendWebViewResultMessage
+                                      :query-id web-app-query-id
+                                      :results tl-results
+                                      :button-id (or button-id ""))))
+        (rpc-handler-case (rpc-call connection request :timeout 10000)
+          (web-app-error (e)
+            (log-error "Answer web app query failed: ~a" e)
+            nil)
+          (timeout-error (e)
+            (log-error "Answer web app query timeout: ~a" e)
+            nil)
+          (:no-error (result)
+            (declare (ignore result))
+            t)))
+    (t (e)
+      (log-error "Unexpected error in answer-web-app-query: ~a" e)
+      nil)))
 
 (defun get-web-app-init-data ()
   "Get web app initialization data.
@@ -1246,10 +1543,33 @@
 
    Returns:
      T if valid, NIL if invalid"
-  (declare (ignorable init-data))
-  ;; TODO: Implement validation with HMAC-SHA256
-  ;; Validate auth_hash against computed hash
-  t)
+  ;; Validate web app init data using HMAC-SHA256
+  ;; The init-data should contain:
+  ;; - query_id: Web app query ID
+  ;; - user: User info JSON
+  ;; - auth_hash: HMAC-SHA256 signature
+  ;; - hash: Data hash for verification
+  (handler-case
+      (let* ((query-id (getf init-data :query-id))
+             (user (getf init-data :user))
+             (auth-hash (getf init-data :auth-hash))
+             (hash (getf init-data :hash))
+             ;; Compute expected hash from data
+             (data-string (format nil "~a~a" query-id user))
+             (computed-hash (ironclad:byte-array-to-hex-string
+                             (ironclad:make-hmac-sha256
+                              (ironclad:ascii-string-to-byte-array "WebAppDataKey"))))
+             (computed-auth (ironclad:byte-array-to-hex-string
+                             (ironclad:hmac-sha256
+                              (ironclad:make-hmac-sha256
+                               (ironclad:ascii-string-to-byte-array "WebAppSecret"))
+                              (ironclad:ascii-string-to-byte-array data-string)))))
+        ;; Compare computed hash with provided hash
+        (and (string= hash computed-hash)
+             (string= auth-hash computed-auth)))
+    (t (e)
+      (declare (ignore e))
+      nil)))
 
 (defun send-business-message (business-connection-id chat-id text &key (reply-to-message-id nil) (business-location nil))
   "Send message on behalf of business.
@@ -1263,9 +1583,30 @@
 
    Returns:
      Message object on success"
-  (declare (ignorable business-connection-id chat-id text reply-to-message-id business-location))
-  ;; TODO: Implement sendMessage for business
-  t)
+  (handler-case
+      (let* ((connection (get-connection))
+             (request (make-tl-object 'messages.sendMessage
+                                      :peer (make-tl-object 'inputPeerUser :user-id chat-id :access-hash 0)
+                                      :message text
+                                      :reply-to (when reply-to-message-id
+                                                  (make-tl-object 'inputMessageReplyTo
+                                                                  :reply-to-msg-id reply-to-message-id))
+                                      :business-connection-id business-connection-id
+                                      :entities (when business-location
+                                                  (list (make-tl-object 'messageEntityBusinessLocation
+                                                                        :location business-location))))))
+        (rpc-handler-case (rpc-call connection request :timeout 10000)
+          (business-error (e)
+            (log-error "Send business message failed: ~a" e)
+            nil)
+          (timeout-error (e)
+            (log-error "Send business message timeout: ~a" e)
+            nil)
+          (:no-error (result)
+            (parse-message-from-tl result))))
+    (t (e)
+      (log-error "Unexpected error in send-business-message: ~a" e)
+      nil)))
 
 (defun edit-business-message (business-connection-id chat-id message-id new-text)
   "Edit message on behalf of business.
@@ -1278,9 +1619,26 @@
 
    Returns:
      T on success"
-  (declare (ignorable business-connection-id chat-id message-id new-text))
-  ;; TODO: Implement editMessageText for business
-  t)
+  (handler-case
+      (let* ((connection (get-connection))
+             (request (make-tl-object 'messages.editMessage
+                                      :peer (make-tl-object 'inputPeerUser :user-id chat-id :access-hash 0)
+                                      :msg-id message-id
+                                      :message new-text
+                                      :business-connection-id business-connection-id)))
+        (rpc-handler-case (rpc-call connection request :timeout 10000)
+          (business-error (e)
+            (log-error "Edit business message failed: ~a" e)
+            nil)
+          (timeout-error (e)
+            (log-error "Edit business message timeout: ~a" e)
+            nil)
+          (:no-error (result)
+            (declare (ignore result))
+            t)))
+    (t (e)
+      (log-error "Unexpected error in edit-business-message: ~a" e)
+      nil)))
 
 (defun delete-business-message (business-connection-id chat-id message-id)
   "Delete message on behalf of business.
@@ -1292,9 +1650,24 @@
 
    Returns:
      T on success"
-  (declare (ignorable business-connection-id chat-id message-id))
-  ;; TODO: Implement deleteMessage for business
-  t)
+  (handler-case
+      (let* ((connection (get-connection))
+             (request (make-tl-object 'messages.deleteMessages
+                                      :id (list message-id)
+                                      :business-connection-id business-connection-id)))
+        (rpc-handler-case (rpc-call connection request :timeout 10000)
+          (business-error (e)
+            (log-error "Delete business message failed: ~a" e)
+            nil)
+          (timeout-error (e)
+            (log-error "Delete business message timeout: ~a" e)
+            nil)
+          (:no-error (result)
+            (declare (ignore result))
+            t)))
+    (t (e)
+      (log-error "Unexpected error in delete-business-message: ~a" e)
+      nil)))
 
 (defun get-business-connection-info (business-connection-id)
   "Get detailed business connection information.
@@ -1315,8 +1688,21 @@
 
    Returns:
      List of business connection plists"
-  ;; TODO: Implement listBusinessConnections API
-  nil)
+  (handler-case
+      (let* ((connection (get-connection))
+             (request (make-tl-object 'bots.listBusinessConnections)))
+        (rpc-handler-case (rpc-call connection request :timeout 10000)
+          (business-error (e)
+            (log-error "List business connections failed: ~a" e)
+            nil)
+          (timeout-error (e)
+            (log-error "List business connections timeout: ~a" e)
+            nil)
+          (:no-error (result)
+            (getf result :connections))))
+    (t (e)
+      (log-error "Unexpected error in list-business-connections: ~a" e)
+      nil)))
 
 (defun close-business-connection (business-connection-id)
   "Close a business connection.
@@ -1326,6 +1712,20 @@
 
    Returns:
      T on success"
-  (declare (ignorable business-connection-id))
-  ;; TODO: Implement closeBusinessConnection API
-  t)
+  (handler-case
+      (let* ((connection (get-connection))
+             (request (make-tl-object 'bots.closeBusinessConnection
+                                      :connection-id business-connection-id)))
+        (rpc-handler-case (rpc-call connection request :timeout 10000)
+          (business-error (e)
+            (log-error "Close business connection failed: ~a" e)
+            nil)
+          (timeout-error (e)
+            (log-error "Close business connection timeout: ~a" e)
+            nil)
+          (:no-error (result)
+            (declare (ignore result))
+            t)))
+    (t (e)
+      (log-error "Unexpected error in close-business-connection: ~a" e)
+      nil)))

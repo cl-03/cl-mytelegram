@@ -5,23 +5,25 @@
   :description "A pure Common Lisp Telegram client implementation using MTProto 2.0"
   :author "Your Name <your.email@example.com>"
   :license "Boost Software License 1.0"
-  :version "0.7.0"
+  :version "0.23.0"
   :depends-on (:cl-async
                :usocket
                :dexador
                :ironclad
                :bordeaux-threads
-               :cl-babel
+               :babel
                :cl-base64
                :trivial-gray-streams
                :jonathan
                :cl-ppcre
                :clog
-               :cl-sqlite)
+               :cl-sqlite
+               :opticl
+               :cl-log
+               :trivial-2d-array)
   :serial t
   :pathname "src/"
   :components ((:file "package")
-
                ;; Crypto layer
                (:module "crypto"
                 :serial t
@@ -30,16 +32,14 @@
                              (:file "sha256")
                              (:file "rsa")
                              (:file "dh")
-                             (:file "kdf"))))
-
+                             (:file "kdf")))
                ;; TL Serialization layer
                (:module "tl"
                 :serial t
                 :components ((:file "tl-package")
                              (:file "types")
                              (:file "serializer")
-                             (:file "deserializer"))))
-
+                             (:file "deserializer")))
                ;; MTProto Protocol layer
                (:module "mtproto"
                 :serial t
@@ -48,8 +48,7 @@
                              (:file "auth")
                              (:file "encrypt")
                              (:file "decrypt")
-                             (:file "transport"))))
-
+                             (:file "transport")))
                ;; Network layer
                (:module "network"
                 :serial t
@@ -59,8 +58,7 @@
                              (:file "rpc")
                              (:file "proxy")
                              (:file "cdn")
-                             (:file "websocket-client"))))
-
+                             (:file "websocket-client")))
                ;; API layer
                (:module "api"
                 :serial t
@@ -92,8 +90,16 @@
                              (:file "group-management")
                              (:file "e2e-encryption")
                              (:file "search-discovery")
-                             (:file "media-editing"))))
-
+                             (:file "media-editing")
+                             (:file "payment")
+                             (:file "business")
+                             (:file "chat-folders")
+                             (:file "emoji-customization")
+                             (:file "channel-advanced")
+                             (:file "notifications")
+                             (:file "contacts-enhanced")
+                             (:file "utilities")
+                             (:file "bot-api-8")))
                ;; UI layer
                (:module "ui"
                 :serial t
@@ -102,18 +108,25 @@
                              (:file "clog-ui")
                              (:file "clog-components")
                              (:file "media-viewer")))
-
+               ;; Image processing layer
+               (:module "image-processing"
+                :serial t
+                :components ((:file "image-processing-package")
+                             (:file "image-operations")
+                             (:file "image-filters")
+                             (:file "image-overlays")
+                             (:file "instagram-filters")))
                ;; Mobile layer
                (:module "mobile"
                 :serial t
                 :components ((:file "mobile-package")
                              (:file "ios-integration")
-                             (:file "android-integration"))))
+                             (:file "android-integration")))))
 
 ;; Test system
 (asdf:defsystem #:cl-telegram/tests
   :description "Tests for cl-telegram"
-  :depends-on (:cl-telegram :fiveam :cl-ppcre)
+  :depends-on (:cl-telegram :fiveam :cl-ppcre :cl-telegram/image-processing)
   :pathname "tests/"
   :components ((:file "package")
                (:file "crypto-tests")
@@ -140,7 +153,15 @@
                (:file "search-discovery-tests")
                (:file "media-editing-tests")
                (:file "performance-stability-tests")
-               (:file "mobile-tests")))
+               (:file "mobile-tests")
+               (:file "voice-messages-tests")
+               (:file "file-management-tests")
+               (:file "drafts-scheduled-tests")
+               (:file "account-security-tests")
+               (:file "payment-business-tests")
+               (:file "v0.22.0-tests")
+               (:file "bot-api-8-tests")
+               (:file "image-processing-tests")))
 
 ;; Documentation system
 (asdf:defsystem #:cl-telegram/docs

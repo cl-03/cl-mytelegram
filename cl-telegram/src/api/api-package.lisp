@@ -131,6 +131,46 @@
    #:export-channel-invite-link
    #:join-channel
    #:leave-channel
+   ;; Channel Management (channels.lisp)
+   #:get-channel
+   #:get-my-channels
+   #:create-channel
+   #:set-channel-info
+   #:set-channel-photo
+   #:delete-channel-photo
+   #:get-channel-administrators
+   #:add-channel-administrator
+   #:remove-channel-administrator
+   #:ban-channel-user
+   #:unban-channel-user
+   #:get-channel-banned-users
+   #:revoke-channel-invite-link
+   #:create-channel-invite-link
+   #:get-channel-invite-link-info
+   #:broadcast-to-channel
+   #:edit-channel-message
+   #:delete-channel-message
+   #:pin-channel-message
+   #:unpin-channel-message
+   #:get-channel-stats
+   #:get-channel-post-stats
+   #:get-message-reactions
+   #:send-message-reaction
+   #:remove-message-reaction
+   #:get-recent-reactors
+   #:set-available-reactions
+   #:get-channel-post
+   #:get-channel-posts
+   #:get-pinned-messages
+   #:get-post-comments
+   #:send-comment
+   #:render-channel-list
+   #:render-broadcast-panel
+   #:render-reaction-panel
+   #:render-channel-stats
+   #:channel-type-string
+   #:clear-channel-cache
+   #:clear-reaction-cache
 
    ;; Users API
    #:get-users
@@ -405,6 +445,28 @@
    #:sticker-type-string
    #:clear-sticker-cache
 
+   ;; Sticker Management
+   #:get-sticker-set
+   #:search-sticker-sets
+   #:get-all-sticker-sets
+   #:install-sticker-set
+   #:uninstall-sticker-set
+   #:add-sticker-to-set
+   #:remove-sticker-from-set
+   #:upload-sticker
+   #:create-new-sticker-set
+   #:get-favorite-stickers
+   #:add-favorite-sticker
+   #:remove-favorite-sticker
+   #:get-emoji-packs
+   #:install-emoji-pack
+   #:uninstall-emoji-pack
+   #:get-installed-emoji-packs
+   #:send-sticker
+   #:get-sticker-from-message
+   #:send-custom-emoji
+   #:get-custom-emoji
+
    ;; Channels & Broadcast
    #:channel
    #:channel-post
@@ -443,48 +505,6 @@
    #:*channel-cache*
    #:*available-reactions*
    #:*recent-reactions*
-   #:get-channel
-   #:get-my-channels
-   #:create-channel
-   #:delete-channel
-   #:set-channel-info
-   #:set-channel-photo
-   #:delete-channel-photo
-   #:get-channel-administrators
-   #:add-channel-administrator
-   #:remove-channel-administrator
-   #:ban-channel-user
-   #:unban-channel-user
-   #:get-channel-banned-users
-   #:export-channel-invite-link
-   #:revoke-channel-invite-link
-   #:create-channel-invite-link
-   #:get-channel-invite-link-info
-   #:broadcast-to-channel
-   #:edit-channel-message
-   #:delete-channel-message
-   #:pin-channel-message
-   #:unpin-channel-message
-   #:get-channel-stats
-   #:get-channel-post-stats
-   #:get-channel-members
-   #:get-message-reactions
-   #:send-message-reaction
-   #:remove-message-reaction
-   #:get-recent-reactors
-   #:set-available-reactions
-   #:get-channel-post
-   #:get-channel-posts
-   #:get-pinned-messages
-   #:get-post-comments
-   #:send-comment
-   #:render-channel-list
-   #:render-broadcast-panel
-   #:render-reaction-panel
-   #:render-channel-stats
-   #:channel-type-string
-   #:clear-channel-cache
-   #:clear-reaction-cache
 
    ;; Inline Bots & Keyboards
    #:inline-query
@@ -649,6 +669,55 @@
    #:apply-visual-effect-to-result
    #:get-enhanced-inline-features
 
+   ;; Premium Features
+   #:premium-status
+   #:premium-features-config
+   #:*premium-status*
+   #:*premium-features-config*
+   #:*premium-cache-ttl*
+   #:*premium-last-check*
+   #:check-premium-status
+   #:refresh-premium-status
+   #:get-premium-status-from-server
+   #:verify-premium-status
+   #:premium-required-p
+   #:ensure-premium
+   #:premium-required-error
+   #:premium-error-feature
+   #:premium-error-message
+   #:get-max-file-size
+   #:can-upload-file-p
+   #:validate-file-for-upload
+   #:get-premium-sticker-sets
+   #:fetch-premium-sticker-sets
+   #:can-use-premium-sticker-p
+   #:get-premium-reactions
+   #:fetch-premium-reactions
+   #:can-send-reaction-p
+   #:get-premium-profile-colors
+   #:fetch-premium-profile-colors
+   #:get-premium-chat-themes
+   #:fetch-premium-chat-themes
+   #:set-profile-color
+   #:set-chat-theme
+   #:get-premium-emoji-statuses
+   #:fetch-premium-emoji-statuses
+   #:set-emoji-status
+   #:clear-emoji-status
+   #:get-premium-transcription-hours
+   #:transcribe-voice-message-premium
+   #:get-doubled-limits
+   #:can-pin-more-chats-p
+   #:can-join-more-channels-p
+   #:render-premium-badge
+   #:render-premium-features-panel
+   #:show-premium-promo
+   #:get-premium-stats
+   #:reset-premium-cache
+   #:get-premium-subscription-info
+   #:cancel-premium-subscription
+   #:renew-premium-subscription
+
    ;; Inline Bot 2025 Extended (Bot API 9.1+)
    #:make-inline-result-article-with-effects
    #:make-inline-result-photo-with-effects
@@ -668,6 +737,213 @@
    #:get-business-connection-info
    #:list-business-connections
    #:close-business-connection
+
+   ;; File Management
+   #:file-location
+   #:uploaded-file
+   #:web-file
+   #:get-file-location
+   #:download-file
+   #:download-file-partial
+   #:download-media
+   #:upload-file
+   #:upload-file-small
+   #:upload-file-large
+   #:upload-media
+   #:get-web-file
+   #:get-upload-session
+   #:cancel-upload
+   #:get-upload-progress
+   #:get-active-uploads
+   #:enable-cdn-download
+   #:disable-cdn-download
+   #:cdn-download-enabled-p
+   #:set-cdn-config
+   #:file-size-string
+   #:format-upload-speed
+   #:estimate-upload-time
+   #:determine-media-type
+   #:guess-mime-type
+   #:*file-download-queue*
+   #:*active-uploads*
+   #:*download-part-size*
+   #:*upload-part-size*
+   #:*max-upload-parts*
+   #:*cdn-download-enabled*
+
+   ;; Drafts and Scheduled Messages
+   #:draft-message
+   #:save-draft
+   #:get-drafts
+   #:get-all-drafts
+   #:get-draft
+   #:delete-draft
+   #:clear-all-drafts
+   #:send-scheduled-message
+   #:send-scheduled-media
+   #:get-scheduled-messages
+   #:get-all-scheduled-messages
+   #:delete-scheduled-message
+   #:delete-all-scheduled-messages
+   #:send-scheduled-messages-now
+   #:set-default-message-ttl
+   #:get-default-message-ttl
+   #:set-chat-ttl
+   #:send-multi-media
+   #:send-photo-album
+   #:send-video-album
+   #:copy-message
+   #:*draft-cache*
+   #:*scheduled-messages*
+   #:*default-ttl*
+
+   ;; Account Security
+   #:login-token
+   #:authorization-session
+   #:privacy-rule
+   #:export-login-token
+   #:import-login-token
+   #:accept-login-token
+   #:generate-qr-code-url
+   #:parse-qr-code-url
+   #:get-privacy-settings
+   #:set-privacy-settings
+   #:reset-privacy-settings
+   #:get-authorizations
+   #:reset-authorization
+   #:reset-authorization-all
+   #:change-phone-number
+   #:send-confirm-phone-code
+   #:confirm-phone
+   #:takeout-init
+   #:finish-takeout-session
+   #:base64-encode
+   #:base64-decode
+   #:*login-token*
+   #:*qr-login-state*
+   #:*privacy-rules-cache*
+
+   ;; Payment and Telegram Stars (v0.20.0)
+   #:labeled-price
+   #:invoice
+   #:star-transaction
+   #:star-balance
+   #:make-labeled-price
+   #:make-invoice
+   #:send-invoice
+   #:create-invoice-link
+   #:refund-star-payment
+   #:gift-premium-subscription
+   #:get-business-account-star-balance
+   #:transfer-business-account-stars
+   #:create-subscription-invoice
+   #:create-star-invoice
+   #:*supported-currencies*
+   #:*max-tip-presets*
+
+   ;; Business Features (v0.20.0)
+   #:business-connection
+   #:business-location
+   #:business-opening-hours
+   #:business-opening-hours-interval
+   #:business-bot-rights
+   #:quick-reply
+   #:get-business-connection
+   #:list-business-connections
+   #:set-business-location
+   #:get-business-location
+   #:delete-business-location
+   #:make-opening-hours-interval
+   #:make-opening-hours-from-times
+   #:set-business-opening-hours
+   #:get-business-opening-hours
+   #:delete-business-opening-hours
+   #:make-quick-reply
+   #:send-message-with-quick-replies
+   #:send-business-message
+   #:edit-business-message
+   #:delete-business-message
+   #:create-business-chat-link
+   #:*business-connections-cache*
+   #:*quick-reply-types*
+
+   ;; Chat Folders (v0.21.0)
+   #:chat-folder
+   #:chat-folder-filter
+   #:archive-info
+   #:make-chat-folder
+   #:make-chat-folder-filter
+   #:create-chat-folder
+   #:edit-chat-folder
+   #:delete-chat-folder
+   #:get-chat-folders
+   #:get-chat-folder
+   #:add-chat-to-folder
+   #:remove-chat-from-folder
+   #:archive-chat
+   #:unarchive-chat
+   #:get-archived-chats
+   #:get-archive-info
+   #:get-chat-list
+   #:reorder-chat-folders
+   #:share-chat-folder
+   #:import-chat-folder
+   #:*chat-folders-cache*
+   #:*archive-cache*
+   #:*default-folder-icons*
+
+   ;; Emoji and Customization (v0.21.0)
+   #:custom-emoji
+   #:emoji-category
+   #:message-effect
+   #:chat-wallpaper
+   #:chat-theme
+   #:get-custom-emoji-stickers
+   #:get-emoji-categories
+   #:search-custom-emoji
+   #:get-premium-emojis
+   #:get-available-message-effects
+   #:send-message-with-effect
+   #:send-dice
+   #:get-wallpapers
+   #:set-chat-wallpaper
+   #:upload-wallpaper
+   #:get-chat-themes
+   #:set-chat-theme
+   #:get-premium-themes
+   #:send-star-reaction
+   #:create-giveaway
+   #:*custom-emoji-cache*
+   #:*wallpaper-cache*
+   #:*theme-cache*
+   #:*available-message-effects*
+   #:*default-dice-emojis*
+
+   ;; Channel Advanced Features (v0.21.0)
+   #:forum-topic
+   #:forum-topic-info
+   #:channel-statistics
+   #:message-statistics
+   #:reaction-statistics
+   #:sponsored-message
+   #:create-forum-topic
+   #:get-forum-topics
+   #:edit-forum-topic
+   #:close-forum-topic
+   #:reopen-forum-topic
+   #:delete-forum-topic
+   #:pin-forum-topic
+   #:unpin-forum-topic
+   #:get-forum-topic-icon-stickers
+   #:get-channel-statistics
+   #:get-message-statistics
+   #:get-reaction-statistics
+   #:get-sponsored-messages
+   #:report-sponsored-message
+   #:*forum-topics-cache*
+   #:*channel-stats-cache*
+   #:*sponsored-messages-cache*
+   #:*topic-icon-colors*
 
    ;; Performance Monitoring
    #:start-performance-monitoring
@@ -912,6 +1188,16 @@
    #:waveform-to-ascii
    #:clear-voice-cache
    #:get-available-voice-devices
+   #:send-audio-by-file-id
+   #:make-temp-audio-file
+   #:make-temp-video-file
+   #:upload-file
+   #:download-file-to-cache
+   #:guess-audio-duration
+   #:generate-waveform-from-file
+   #:parse-voice-message-from-message
+   #:register-transcription-callback
+   #:premium-feature-available-p
 
    ;; Stories & Highlights
    #:story
@@ -1187,4 +1473,190 @@
    #:get-cached-story-thumbnail
    #:evict-oldest-thumbnails
    #:clear-story-thumbnail-cache
-   #:preload-stories-thumbnails))
+   #:preload-stories-thumbnails
+
+   ;; Notifications (v0.22.0)
+   #:notification-settings
+   #:chat-notification-settings
+   #:notification
+   #:notification-center
+   #:initialize-notification-settings
+   #:get-notification-settings
+   #:update-notification-settings
+   #:set-custom-notification-sound
+   #:get-chat-notification-settings
+   #:set-chat-notification-settings
+   #:mute-chat
+   #:unmute-chat
+   #:chat-muted-p
+   #:initialize-notification-center
+   #:add-notification
+   #:get-notifications
+   #:mark-notification-read
+   #:mark-all-notifications-read
+   #:clear-notifications
+   #:show-desktop-notification
+   #:register-notification-hook
+   #:unregister-notification-hook
+   #:get-server-notification-settings
+   #:set-server-notification-settings
+   #:export-notification-settings
+   #:import-notification-settings
+
+   ;; Contacts Enhanced (v0.22.0)
+   #:contact-vcard
+   #:contact-suggestion
+   #:contact-import-result
+   #:blocked-user
+   #:make-vcard-from-user
+   #:export-contact-vcard
+   #:parse-vcard
+   #:import-contact-vcard
+   #:export-all-contacts
+   #:import-contacts
+   #:delete-contacts
+   #:get-contacts-status
+   #:sync-contacts
+   #:get-contact-sync-status
+   #:get-contact-suggestions
+   #:dismiss-contact-suggestion
+   #:get-blocked-users
+   #:block-user
+   #:unblock-user
+   #:user-blocked-p
+   #:share-contact
+   #:request-contact
+   #:get-nearby-users
+   #:toggle-nearby-users
+
+   ;; Utilities (v0.22.0)
+   #:format-message-text
+   #:parse-message-entities
+   #:strip-markdown
+   #:truncate-text
+   #:escape-markdown
+   #:format-relative-time
+   #:format-datetime
+   #:parse-datetime
+   #:time-to-minutes
+   #:minutes-to-time
+   #:make-mention
+   #:parse-mention
+   #:extract-mentions
+   #:make-chat-link
+   #:parse-chat-link
+   #:rate-limiter
+   #:make-rate-limiter
+   #:rate-limit-try
+   #:rate-limit-wait
+   #:rate-limit-status
+   #:*log-level*
+   #:*log-output*
+   #:*log-prefix*
+   #:set-log-level
+   #:log-message
+   #:enable-debug-logging
+   #:disable-debug-logging
+   #:with-logging
+   #:debug-time
+   #:config-manager
+   #:make-config-manager
+   #:get-config
+   #:set-config
+   #:load-config
+   #:save-config
+   #:delete-config
+   #:with-connection
+   #:with-retry
+   #:define-api-function
+
+   ;; Bot API 8.0 Features (November 2024)
+   ;; Message Reactions
+   #:reaction-type
+   #:reaction-count
+   #:message-reaction-update
+   #:*available-reaction-types*
+   #:*reaction-update-handlers*
+   #:make-reaction-type-emoji
+   #:make-reaction-type-custom-emoji
+   #:make-reaction-type-star
+   #:send-message-reaction
+   #:get-message-reactions
+   #:remove-message-reaction
+   #:get-available-reactions
+   #:on-message-reaction
+   #:unregister-reaction-handler
+   #:process-reaction-update
+   #:reaction-to-tl
+   #:parse-reaction-from-tl
+
+   ;; Emoji Status
+   #:emoji-status
+   #:*user-emoji-status*
+   #:*available-emoji-statuses*
+   #:set-emoji-status
+   #:clear-emoji-status
+   #:get-emoji-statuses
+   #:get-user-emoji-status
+
+   ;; Advanced Media Editing
+   #:media-edit-options
+   #:media-edit-crop
+   #:media-edit-rotation
+   #:media-edit-filter
+   #:media-edit-overlay-text
+   #:media-edit-overlay-emoji
+   #:media-edit-caption
+   #:media-edit-parse-mode
+   #:edit-message-media-advanced
+   #:crop-media
+   #:rotate-media
+   #:apply-media-filter
+   #:add-text-overlay
+   #:add-emoji-sticker
+   #:edit-message-caption
+   #:filter-type
+   #:get-available-filters
+   #:apply-filter-by-name
+
+   ;; Story Highlights
+   #:story-highlight
+   #:highlight-cover
+   #:story-highlight-id
+   #:story-highlight-title
+   #:story-highlight-cover
+   #:story-highlight-stories
+   #:story-highlight-date-created
+   #:story-highlight-is-hidden
+   #:story-highlight-privacy
+   #:highlight-cover-media-id
+   #:highlight-cover-crop
+   #:highlight-cover-filter
+   #:create-highlight
+   #:edit-highlight
+   #:edit-highlight-cover
+   #:reorder-highlights
+   #:get-highlights
+   #:delete-highlight
+   #:set-highlight-privacy
+   #:add-stories-to-highlight
+   #:remove-highlight
+   #:parse-highlight-from-tl
+
+   ;; Message Translation
+   #:translation-result
+   #:translation-original-text
+   #:translation-translated-text
+   #:translation-source-language
+   #:translation-target-language
+   #:translation-auto-detected
+   #:translate-message
+   #:translate-text
+   #:set-chat-language
+   #:get-supported-languages
+   #:clear-translation-cache
+   #:get-translation-history
+   #:enable-auto-translation
+   #:disable-auto-translation
+   #:auto-translation-enabled-p
+   #:supported-translation-languages))

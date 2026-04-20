@@ -601,26 +601,65 @@
 
    msg_container#73f1f8dc messages:vector<Message>"
   (let ((count (cl-telegram/tl:deserialize-int32 body 4)))
-    (declare (ignore count))
-    ;; Parse each message in container
-    ;; TODO: Implement full container parsing
-    ))
+    (let ((offset 8)
+          (messages nil))
+      ;; Parse each message in container
+      (dotimes (i count)
+        (handler-case
+            (let* ((inner-msg-id (cl-telegram/tl:deserialize-int64 body offset))
+                   (inner-seqno (cl-telegram/tl:deserialize-int32 body (+ offset 8)))
+                   (inner-length (cl-telegram/tl:deserialize-int32 body (+ offset 12)))
+                   (inner-body (subseq body (+ offset 16) (+ offset 16 inner-length))))
+              ;; Recursively handle each inner message
+              (handle-message conn inner-msg-id inner-seqno inner-body inner-length)
+              (push (list :msg-id inner-msg-id
+                          :seqno inner-seqno
+                          :length inner-length)
+                    messages)
+              (setf offset (+ offset 16 inner-length)))
+          (error (e)
+            (log-error "Error parsing container message ~a: ~a" i e))))
+      ;; Return parsed messages for logging/debugging
+      (nreverse messages))))
 
 (defun handle-gzip-packed (conn msg-id body)
   "Handle gzip-packed message.
 
    gzip_packed#3072cfa1 packed_data:string"
-  ;; TODO: Decompress and handle
-  (declare (ignore conn msg-id body)))
+  (handler-case
+      (let* ((packed-data (cl-telegram/tl:deserialize-bytes body 4))
+             ;; Decompress using zlib
+             (decompressed (flexi-streams:octets-to-string
+                            (trivial-compression:decompress packed-data :gzip)
+                            :external-format :utf-8))
+             (decompressed-bytes (babel:string-to-octets decompressed :encoding :utf-8)))
+        ;; Recursively handle the decompressed message
+        (handle-message conn msg-id 0 decompressed-bytes (length decompressed-bytes)))
+    (error (e)
+      (log-error "Failed to decompress gzip-packed message: ~a" e)
+      nil)))
 
 (defun handle-bad-server-salt (conn msg-id body)
   "Handle bad_server_salt notification.
 
    bad_server_salt#edab447b bad_msg_id:long bad_msg_seqno:int error_code:int new_server_salt:long"
-  (let ((new-salt (cl-telegram/tl:deserialize-int64 body 20)))
+  (let ((new-salt (cl-telegram/tl:deserialize-int64 body 20))
+        (bad-msg-id (cl-telegram/tl:deserialize-int64 body 4))
+        (bad-seqno (cl-telegram/tl:deserialize-int32 body 12)))
+    (declare (ignore bad-msg-id bad-seqno))
+    ;; Update the server salt
     (setf (conn-server-salt conn) new-salt)
-    ;; TODO: Retry the failed message with new salt
-    ))
+    ;; Retry the failed message with new salt
+    (let ((pending-request (gethash bad-msg-id (conn-pending-requests conn))))
+      (when pending-request
+        ;; Resend the original request with new salt
+        (let ((original-request (car pending-request)))
+          (when original-request
+            (log-info "Retrying message ~a with new server salt ~a" bad-msg-id new-salt)
+            ;; Clear the pending request to allow retry
+            (remhash bad-msg-id (conn-pending-requests conn))
+            ;; Resend with updated salt
+            (rpc-call conn original-request :timeout 10000)))))))
 
 (defun handle-bad-msg-notification (conn msg-id body)
   "Handle bad_msg_notification.

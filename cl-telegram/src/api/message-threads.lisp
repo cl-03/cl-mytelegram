@@ -68,9 +68,54 @@
 
    Returns:
      Message object on success"
-  (declare (ignorable chat-id text reply-to-message-id quote-text parse-mode entities))
-  ;; TODO: Implement API call
-  nil)
+  (handler-case
+      (let* ((connection (get-connection))
+             (peer (make-tl-object 'inputPeerUser :user-id chat-id :access-hash 0))
+             (reply-to (make-tl-object 'inputMessageReplyTo
+                                       :reply-to-msg-id reply-to-message-id
+                                       :quote-text (or quote-text "")
+                                       :quote-entities (or entities nil)))
+             (message (make-tl-object 'inputMessageText
+                                      :message text
+                                      :entities (when parse-mode
+                                                  (parse-message-entities text parse-mode))
+                                      :clear-draft nil))
+             (random-id (random (expt 2 63)))
+             (request (make-tl-object 'messages.sendMessage
+                                      :peer peer
+                                      :message message
+                                      :random-id random-id
+                                      :schedule-date 0
+                                      :reply-to reply-to
+                                      :reply-markup nil)))
+        (multiple-value-bind (result error)
+            (rpc-handler-case (rpc-call connection request :timeout 30000)
+              (tl-rpc-error (e) (values nil (error-message e)))
+              (timeout-error (e) (values nil :timeout))
+              (network-error (e) (values nil :network-error)))
+          (if error
+              (progn
+                (log:error "Failed to send message with reply: ~A" error)
+                nil)
+              (let ((msg (parse-message-from-tl result)))
+                ;; Cache the reply
+                (let ((key (format nil "~A:~A" chat-id reply-to-message-id)))
+                  (let ((chain (gethash key *reply-cache*)))
+                    (if chain
+                        (progn
+                          (push msg (slot-value chain 'replies))
+                          (incf (slot-value chain 'total-reply-count)))
+                        (setf (gethash key *reply-cache*)
+                              (make-instance 'reply-chain
+                                             :chain-id key
+                                             :message-id reply-to-message-id
+                                             :chat-id chat-id
+                                             :replies (list msg)
+                                             :total-reply-count 1)))))
+                msg))))
+    (error (e)
+      (log:error "Exception in send-message-with-reply: ~A" e)
+      nil)))
 
 (defun get-message-replies (chat-id message-id &key (limit 50) (offset 0))
   "Get all replies to a message.
@@ -94,9 +139,27 @@
 
    Returns:
      Original message object or NIL"
-  (declare (ignorable reply-message))
-  ;; TODO: Implement API call
-  nil)
+  (handler-case
+      (when (and reply-message (getf reply-message :reply-to))
+        (let* ((connection (get-connection))
+               (reply-to (getf reply-message :reply-to))
+               (peer (make-tl-object 'inputPeerUser :user-id (getf reply-to :chat-id) :access-hash 0))
+               (msg-id (getf reply-to :msg-id))
+               (request (make-tl-object 'messages.getMessages
+                                        :id (list msg-id))))
+          (multiple-value-bind (result error)
+              (rpc-handler-case (rpc-call connection request :timeout 10000)
+                (tl-rpc-error (e) (values nil (error-message e)))
+                (timeout-error (e) (values nil :timeout))
+                (network-error (e) (values nil :network-error)))
+            (if error
+                (progn
+                  (log:error "Failed to get reply-to message: ~A" error)
+                  nil)
+                (parse-message-from-tl result)))))
+    (error (e)
+      (log:error "Exception in get-reply-to-message: ~A" e)
+      nil)))
 
 (defun edit-message-with-reply (chat-id message-id new-text &key (reply-to-message-id nil))
   "Edit message and optionally add/change reply.
@@ -109,9 +172,35 @@
 
    Returns:
      Edited message object"
-  (declare (ignorable chat-id message-id new-text reply-to-message-id))
-  ;; TODO: Implement API call
-  nil)
+  (handler-case
+      (let* ((connection (get-connection))
+             (peer (make-tl-object 'inputPeerUser :user-id chat-id :access-hash 0))
+             (request (make-tl-object 'messages.editMessage
+                                      :peer peer
+                                      :id message-id
+                                      :message new-text
+                                      :no-webpage nil
+                                      :reply-markup nil
+                                      :entities nil
+                                      :schedule-date 0
+                                      :reply-to (when reply-to-message-id
+                                                  (make-tl-object 'inputMessageReplyTo
+                                                                    :reply-to-msg-id reply-to-message-id
+                                                                    :quote-text ""
+                                                                    :quote-entities nil)))))
+        (multiple-value-bind (result error)
+            (rpc-handler-case (rpc-call connection request :timeout 10000)
+              (tl-rpc-error (e) (values nil (error-message e)))
+              (timeout-error (e) (values nil :timeout))
+              (network-error (e) (values nil :network-error)))
+          (if error
+              (progn
+                (log:error "Failed to edit message with reply: ~A" error)
+                nil)
+              (parse-message-from-tl result))))
+    (error (e)
+      (log:error "Exception in edit-message-with-reply: ~A" e)
+      nil)))
 
 (defun forward-message-with-reply (from-chat-id to-chat-id message-id &key (as-reply nil))
   "Forward message, optionally as reply.
@@ -124,9 +213,32 @@
 
    Returns:
      Forwarded message object"
-  (declare (ignorable from-chat-id to-chat-id message-id as-reply))
-  ;; TODO: Implement API call
-  nil)
+  (handler-case
+      (let* ((connection (get-connection))
+             (from-peer (make-tl-object 'inputPeerUser :user-id from-chat-id :access-hash 0))
+             (to-peer (make-tl-object 'inputPeerUser :user-id to-chat-id :access-hash 0))
+             (random-id (random (expt 2 63)))
+             (request (make-tl-object 'messages.forwardMessages
+                                      :from-peer from-peer
+                                      :to-peer to-peer
+                                      :id (list message-id)
+                                      :random-id (list random-id)
+                                      :as-reply as-reply
+                                      :drop-author nil
+                                      :drop-media-captions nil)))
+        (multiple-value-bind (result error)
+            (rpc-handler-case (rpc-call connection request :timeout 10000)
+              (tl-rpc-error (e) (values nil (error-message e)))
+              (timeout-error (e) (values nil :timeout))
+              (network-error (e) (values nil :network-error)))
+          (if error
+              (progn
+                (log:error "Failed to forward message with reply: ~A" error)
+                nil)
+              (parse-message-from-tl result))))
+    (error (e)
+      (log:error "Exception in forward-message-with-reply: ~A" e)
+      nil)))
 
 ;;; ### Message Threads
 
@@ -140,9 +252,35 @@
 
    Returns:
      Message-thread object on success"
-  (declare (ignorable chat-id topic message-id))
-  ;; TODO: Implement API call
-  nil)
+  (handler-case
+      (let* ((connection (get-connection))
+             (peer (make-tl-object 'inputPeerUser :user-id chat-id :access-hash 0))
+             (random-id (random (expt 2 63)))
+             (request (make-tl-object 'messages.createForumTopic
+                                      :channel peer
+                                      :title topic
+                                      :random-id random-id
+                                      :video-chat-id 0
+                                      :icon-color 0
+                                      :icon-emoji-id 0)))
+        (multiple-value-bind (result error)
+            (rpc-handler-case (rpc-call connection request :timeout 10000)
+              (tl-rpc-error (e) (values nil (error-message e)))
+              (timeout-error (e) (values nil :timeout))
+              (network-error (e) (values nil :network-error)))
+          (if error
+              (progn
+                (log:error "Failed to create message thread: ~A" error)
+                nil)
+              (let ((thread (parse-thread-from-tl result)))
+                (when thread
+                  (let ((key (format nil "~A:~A" chat-id (message-thread-id thread))))
+                    (setf (gethash key *thread-cache*) thread))
+                  (setf (gethash (format nil "~A:~A" chat-id topic) *active-threads*) thread))
+                thread))))
+    (error (e)
+      (log:error "Exception in create-message-thread: ~A" e)
+      nil)))
 
 (defun get-message-thread (chat-id thread-id)
   "Get message thread by ID.
@@ -205,9 +343,39 @@
 
    Returns:
      Message object on success"
-  (declare (ignorable chat-id thread-id text reply-to-message-id))
-  ;; TODO: Implement API call
-  nil)
+  (handler-case
+      (let* ((connection (get-connection))
+             (peer (make-tl-object 'inputPeerUser :user-id chat-id :access-hash 0))
+             (message (make-tl-object 'inputMessageText
+                                      :message text
+                                      :entities nil
+                                      :clear-draft nil))
+             (random-id (random (expt 2 63)))
+             (request (make-tl-object 'messages.sendMessage
+                                      :peer peer
+                                      :message message
+                                      :random-id random-id
+                                      :schedule-date 0
+                                      :reply-to (when reply-to-message-id
+                                                  (make-tl-object 'inputMessageReplyTo
+                                                                    :reply-to-msg-id reply-to-message-id
+                                                                    :quote-text ""
+                                                                    :quote-entities nil))
+                                      :reply-markup nil
+                                      :top-msg-id thread-id)))
+        (multiple-value-bind (result error)
+            (rpc-handler-case (rpc-call connection request :timeout 30000)
+              (tl-rpc-error (e) (values nil (error-message e)))
+              (timeout-error (e) (values nil :timeout))
+              (network-error (e) (values nil :network-error)))
+          (if error
+              (progn
+                (log:error "Failed to send message to thread: ~A" error)
+                nil)
+              (parse-message-from-tl result))))
+    (error (e)
+      (log:error "Exception in send-message-to-thread: ~A" e)
+      nil)))
 
 (defun close-message-thread (chat-id thread-id)
   "Close a message thread.
@@ -292,9 +460,32 @@
 
    Returns:
      T on success"
-  (declare (ignorable chat-id thread-id topic))
-  ;; TODO: Implement API call
-  nil)
+  (handler-case
+      (let* ((connection (get-connection))
+             (peer (make-tl-object 'inputPeerUser :user-id chat-id :access-hash 0))
+             (request (make-tl-object 'messages.editForumTopic
+                                      :channel peer
+                                      :topic thread-id
+                                      :title (or topic "")
+                                      :icon-emoji-id 0)))
+        (multiple-value-bind (result error)
+            (rpc-handler-case (rpc-call connection request :timeout 10000)
+              (tl-rpc-error (e) (values nil (error-message e)))
+              (timeout-error (e) (values nil :timeout))
+              (network-error (e) (values nil :network-error)))
+          (if error
+              (progn
+                (log:error "Failed to edit message thread: ~A" error)
+                nil)
+              (progn
+                ;; Update cache
+                (let ((thread (get-message-thread chat-id thread-id)))
+                  (when thread
+                    (setf (slot-value thread 'topic) topic)))
+                t))))
+    (error (e)
+      (log:error "Exception in edit-message-thread: ~A" e)
+      nil)))
 
 ;;; ### Reply Chains
 
@@ -346,9 +537,32 @@
 
    Returns:
      List of message objects"
-  (declare (ignorable chat-id thread-id limit offset))
-  ;; TODO: Implement API call
-  nil)
+  (handler-case
+      (let* ((connection (get-connection))
+             (peer (make-tl-object 'inputPeerUser :user-id chat-id :access-hash 0))
+             (request (make-tl-object 'messages.getHistory
+                                      :peer peer
+                                      :offset-id offset
+                                      :offset-date 0
+                                      :add-offset 0
+                                      :limit limit
+                                      :max-id 0
+                                      :min-id 0
+                                      :hash 0
+                                      :top-msg-id thread-id)))
+        (multiple-value-bind (result error)
+            (rpc-handler-case (rpc-call connection request :timeout 10000)
+              (tl-rpc-error (e) (values nil (error-message e)))
+              (timeout-error (e) (values nil :timeout))
+              (network-error (e) (values nil :network-error)))
+          (if error
+              (progn
+                (log:error "Failed to get thread messages: ~A" error)
+                nil)
+              (parse-messages-from-tl result))))
+    (error (e)
+      (log:error "Exception in get-thread-messages: ~A" e)
+      nil)))
 
 ;;; ### Quote/Context in Replies
 
@@ -423,9 +637,32 @@
 
    Returns:
      T on success"
-  (declare (ignorable chat-id thread-id user-id))
-  ;; TODO: Implement API call
-  nil)
+  (handler-case
+      (let* ((connection (get-connection))
+             (peer (make-tl-object 'inputPeerUser :user-id chat-id :access-hash 0))
+             (user-peer (make-tl-object 'inputPeerUser :user-id user-id :access-hash 0))
+             (request (make-tl-object 'messages.addChatUser
+                                      :chat-id peer
+                                      :user-id user-peer
+                                      :fwd-limit 0)))
+        (multiple-value-bind (result error)
+            (rpc-handler-case (rpc-call connection request :timeout 10000)
+              (tl-rpc-error (e) (values nil (error-message e)))
+              (timeout-error (e) (values nil :timeout))
+              (network-error (e) (values nil :network-error)))
+          (if error
+              (progn
+                (log:error "Failed to add participant to thread: ~A" error)
+                nil)
+              (progn
+                ;; Update cache
+                (let ((thread (get-message-thread chat-id thread-id)))
+                  (when thread
+                    (pushnew user-id (slot-value thread 'participants))))
+                t))))
+    (error (e)
+      (log:error "Exception in add-participant-to-thread: ~A" e)
+      nil)))
 
 (defun remove-participant-from-thread (chat-id thread-id user-id)
   "Remove participant from thread.
@@ -437,9 +674,32 @@
 
    Returns:
      T on success"
-  (declare (ignorable chat-id thread-id user-id))
-  ;; TODO: Implement API call
-  nil)
+  (handler-case
+      (let* ((connection (get-connection))
+             (peer (make-tl-object 'inputPeerUser :user-id chat-id :access-hash 0))
+             (user-peer (make-tl-object 'inputPeerUser :user-id user-id :access-hash 0))
+             (request (make-tl-object 'messages.deleteChatUser
+                                      :chat-id peer
+                                      :user-id user-peer)))
+        (multiple-value-bind (result error)
+            (rpc-handler-case (rpc-call connection request :timeout 10000)
+              (tl-rpc-error (e) (values nil (error-message e)))
+              (timeout-error (e) (values nil :timeout))
+              (network-error (e) (values nil :network-error)))
+          (if error
+              (progn
+                (log:error "Failed to remove participant from thread: ~A" error)
+                nil)
+              (progn
+                ;; Update cache
+                (let ((thread (get-message-thread chat-id thread-id)))
+                  (when thread
+                    (setf (slot-value thread 'participants)
+                          (remove user-id (slot-value thread 'participants)))))
+                t))))
+    (error (e)
+      (log:error "Exception in remove-participant-from-thread: ~A" e)
+      nil)))
 
 ;;; ### CLOG UI Integration
 
@@ -714,3 +974,83 @@
     (if chain
         (reply-chain-total-count chain)
         0)))
+
+;;; ### Parser Helper Functions
+
+(defun parse-thread-from-tl (tl-object)
+  "Parse TL object into message-thread instance.
+
+   Args:
+     tl-object: TL object from API response
+
+   Returns:
+     Message-thread instance or NIL"
+  (when tl-object
+    (handler-case
+        (make-instance 'message-thread
+                       :thread-id (get-tl-field tl-object :id)
+                       :chat-id (get-tl-field tl-object :chat-id)
+                       :topic (get-tl-field tl-object :title)
+                       :root-message-id (get-tl-field tl-object :root-id)
+                       :message-count (get-tl-field tl-object :messages-count)
+                       :unread-count (get-tl-field tl-object :unread-count)
+                       :last-message-id (get-tl-field tl-object :last-msg-id)
+                       :last-message-date (get-tl-field tl-object :last-date)
+                       :participants (get-tl-field tl-object :participants)
+                       :is-closed (get-tl-field tl-object :closed)
+                       :is-pinned (get-tl-field tl-object :pinned))
+      (error (e)
+        (log:error "Failed to parse thread: ~A" e)
+        nil))))
+
+(defun parse-messages-from-tl (tl-object)
+  "Parse TL object into list of message objects.
+
+   Args:
+     tl-object: TL object from API response
+
+   Returns:
+     List of message objects"
+  (when tl-object
+    (let ((messages (get-tl-field tl-object :messages)))
+      (when (listp messages)
+        (loop for msg in messages
+              collect (parse-message-from-tl msg))))))
+
+(defun parse-reply-from-tl (tl-object)
+  "Parse TL object into message-reply instance.
+
+   Args:
+     tl-object: TL object from API response
+
+   Returns:
+     Message-reply instance or NIL"
+  (when tl-object
+    (handler-case
+        (make-instance 'message-reply
+                       :reply-id (get-tl-field tl-object :id)
+                       :message-id (get-tl-field tl-object :msg-id)
+                       :chat-id (get-tl-field tl-object :chat-id)
+                       :reply-to-message-id (get-tl-field tl-object :reply-to-msg-id)
+                       :from (get-tl-field tl-object :from-id)
+                       :text (get-tl-field tl-object :message)
+                       :date (get-tl-field tl-object :date)
+                       :quote-text (get-tl-field tl-object :quote-text)
+                       :quote-entities (get-tl-field tl-object :quote-entities))
+      (error (e)
+        (log:error "Failed to parse reply: ~A" e)
+        nil))))
+
+(defun parse-replies-from-tl (tl-object)
+  "Parse TL object into list of message-reply instances.
+
+   Args:
+     tl-object: TL object from API response
+
+   Returns:
+     List of message-reply instances"
+  (when tl-object
+    (let ((replies (get-tl-field tl-object :replies)))
+      (when (listp replies)
+        (loop for reply in replies
+              collect (parse-reply-from-tl reply))))))

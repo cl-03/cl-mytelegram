@@ -316,8 +316,18 @@
         (let ((buffer (make-array bytes-to-read :element-type '(unsigned-byte 8))))
           (read-sequence buffer stream)
 
-          ;; TODO: Call MTProto uploadPart API
-          ;; For now, simulate success
+          ;; Call MTProto uploadPart API
+          (let* ((connection (get-connection))
+                 (file-id (upload-session-file-id session))
+                 (request (make-tl-object 'upload.uploadPart
+                                          :file-id file-id
+                                          :part-id part-index
+                                          :data buffer
+                                          :offset offset)))
+            (rpc-handler-case (rpc-call connection request :timeout 30000)
+              (t (c)
+                (log-error "Upload part failed: ~A" c)
+                (return-from upload-file-part :error))))
           (incf (upload-session-uploaded-parts session))
           (setf (upload-session-last-part-time session) (get-universal-time))
 
@@ -511,9 +521,20 @@
           (let* ((story (get-story-by-id story-id))
                  (media (when story (cl-telegram/api:story-media story))))
             (when media
-              ;; TODO: Download and cache thumbnail
-              ;; For now, simulate
-              (incf preloaded)))
+              ;; Download and cache thumbnail
+              (let* ((connection (get-connection))
+                     (thumb-location (cl-telegram/api:media-thumbnail-location media))
+                     (request (make-tl-object 'upload.getFile
+                                              :location thumb-location
+                                              :offset 0
+                                              :limit (* 100 1024))))
+                (handler-case
+                    (let ((result (rpc-call connection request :timeout 10000)))
+                      (when (and result (getf result :bytes))
+                        (cache-story-thumbnail story-id (getf result :bytes))
+                        (incf preloaded)))
+                  (t (c)
+                    (log-error "Failed to preload thumbnail: ~A" c))))))
         (error () nil)))
     preloaded))
 
