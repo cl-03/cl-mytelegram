@@ -1043,6 +1043,29 @@
    #:*max-upload-parts*
    #:*cdn-download-enabled*
 
+   ;; File Management V2 (v0.37.0)
+   #:file-transfer
+   #:file-download
+   #:file-upload
+   #:download-file
+   #:upload-file
+   #:upload-file-part
+   #:upload-big-file-part
+   #:get-file-download-stream
+   #:get-file-upload-stream
+   #:cancel-file-download
+   #:cancel-file-upload
+   #:get-file-progress
+   #:get-active-downloads
+   #:get-active-uploads
+   #:count-active-transfers
+   #:clear-completed-transfers
+   #:detect-mime-type
+   #:initialize-file-management-v2
+   #:shutdown-file-management-v2
+   #:*active-downloads*
+   #:*file-management-config*
+
    ;; Drafts and Scheduled Messages
    #:draft-message
    #:save-draft
