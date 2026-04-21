@@ -1069,6 +1069,31 @@
    #:*scheduled-messages*
    #:*default-ttl*
 
+   ;; Scheduled Messages and Drafts Enhanced (v0.37.0)
+   #:scheduled-message
+   #:message-draft
+   #:send-scheduled-message
+   #:get-scheduled-messages
+   #:delete-scheduled-message
+   #:edit-scheduled-message
+   #:save-message-draft
+   #:get-message-drafts
+   #:get-message-draft
+   #:delete-message-draft
+   #:delete-all-message-drafts
+   #:send-pending-scheduled-messages
+   #:get-scheduled-message
+   #:list-scheduled-messages
+   #:count-scheduled-messages
+   #:clear-scheduled-message-cache
+   #:clear-draft-cache
+   #:cleanup-expired-drafts
+   #:initialize-scheduled-messages
+   #:shutdown-scheduled-messages
+   #:*scheduled-messages*
+   #:*message-drafts*
+   #:*draft-cache-timeout*
+
    ;; Account Security
    #:login-token
    #:authorization-session
