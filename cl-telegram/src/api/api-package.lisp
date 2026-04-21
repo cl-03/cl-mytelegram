@@ -2321,6 +2321,40 @@
    #:*member-tags*
    #:*bot-api-9-8-features*
 
+   ;; Bot API 9.6+ Inline Mode Enhancements (v0.38.0)
+   #:switch-inline-query-chosen-chat
+   #:make-switch-inline-query-chosen-chat
+   #:make-inline-keyboard-button-enhanced
+   #:inline-keyboard-button-with-switch-chat
+   #:inline-query-results-button
+   #:make-inline-query-results-button
+   #:menu-button
+   #:make-menu-button-default
+   #:make-menu-button-commands
+   #:make-menu-button-web-app
+   #:keyboard-button-request-managed-bot
+   #:make-keyboard-button-request-managed-bot
+   #:set-chat-menu-button
+   #:get-chat-menu-button
+   #:answer-inline-query-enhanced
+   #:serialize-switch-inline-query-chosen-chat
+   #:switch-inline-query-chosen-chat-query
+   #:switch-inline-query-allow-users
+   #:switch-inline-query-allow-bots
+   #:switch-inline-query-allow-groups
+   #:switch-inline-query-allow-channels
+   #:inline-query-results-button-text
+   #:inline-query-results-button-start-param
+   #:inline-query-results-button-web-app
+   #:menu-button-type
+   #:menu-button-text
+   #:menu-button-web-app
+   #:keyboard-button-request-managed-bot-id
+   #:keyboard-button-request-managed-bot-is-bot
+   #:keyboard-button-request-managed-bot-is-premium
+   #:keyboard-button-request-managed-bot-name
+   #:keyboard-button-request-managed-bot-username
+
    ;; Performance Optimizations v4
    #:make-connection-pool
    #:initialize-connection-pool

@@ -126,6 +126,7 @@
                              (:file "message-enhanced")
                              (:file "bot-api-9-5")
                              (:file "bot-api-9-8")
+                             (:file "bot-api-9-6-inline")
                              (:file "telegram-business")
                              (:file "scheduled-messages")
                              (:file "account-security-v2")))
@@ -229,6 +230,7 @@
                (:file "chat-backgrounds-tests")
                (:file "bot-api-9-6-stars-tests")
                (:file "bot-api-9-6-managed-tests")
+               (:file "bot-api-9-6-inline-tests")
                (:file "scheduled-messages-tests")
                (:file "account-security-v2-tests")))
 
