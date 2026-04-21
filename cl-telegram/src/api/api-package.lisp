@@ -1290,6 +1290,32 @@
    #:*qr-login-state*
    #:*cache-expiry-time*
 
+   ;; QR Code Login (v0.39.0)
+   #:qr-login-state
+   #:qr-login-token
+   #:qr-login-url
+   #:qr-login-status
+   #:qr-login-created-at
+   #:qr-login-expires-at
+   #:qr-login-authenticated-user
+   #:qr-login-error
+   #:generate-qr-login-token
+   #:get-qr-login-token-url
+   #:render-qr-code-as-text
+   #:render-qr-code-as-image
+   #:render-qr-code-as-svg
+   #:poll-qr-login-status
+   #:wait-for-qr-login
+   #:login-with-qr-code
+   #:get-qr-login-state
+   #:cancel-qr-login
+   #:cleanup-expired-qr-tokens
+   #:print-qr-code-to-terminal
+   #:save-qr-code-to-file
+   #:*qr-login-states*
+   #:*qr-login-poll-interval*
+   #:*qr-login-timeout*
+
    ;; Payment and Telegram Stars (v0.20.0)
    #:labeled-price
    #:invoice

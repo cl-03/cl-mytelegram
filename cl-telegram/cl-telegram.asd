@@ -133,7 +133,8 @@
                              (:file "bot-api-9-6-inline")
                              (:file "telegram-business")
                              (:file "scheduled-messages")
-                             (:file "account-security-v2")))
+                             (:file "account-security-v2")
+                             (:file "qr-code-login")))
                ;; UI layer
                (:module "ui"
                 :serial t
@@ -240,7 +241,8 @@
                (:file "bot-api-9-6-managed-tests")
                (:file "bot-api-9-6-inline-tests")
                (:file "scheduled-messages-tests")
-               (:file "account-security-v2-tests")))
+               (:file "account-security-v2-tests")
+               (:file "qr-code-login-tests")))
 
 ;; Documentation system
 (asdf:defsystem #:cl-telegram/docs
