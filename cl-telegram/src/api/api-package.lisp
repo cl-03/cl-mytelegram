@@ -1101,6 +1101,41 @@
    #:*active-downloads*
    #:*file-management-config*
 
+   ;; File Transfer Progress (v0.39.0)
+   #:transfer-progress
+   #:make-transfer-progress
+   #:transfer-progress-transfer-id
+   #:transfer-progress-transferred
+   #:transfer-progress-total
+   #:transfer-progress-percentage
+   #:transfer-progress-speed
+   #:transfer-progress-speed-human
+   #:transfer-progress-eta
+   #:transfer-progress-eta-human
+   #:transfer-progress-status
+   #:transfer-progress-timestamp
+   #:register-progress-callback
+   #:unregister-progress-callback
+   #:get-progress-callback
+   #:update-progress
+   #:get-transfer-progress
+   #:list-active-transfers
+   #:get-transfer-stats
+   #:clear-progress-callbacks
+   #:cleanup-completed-transfers
+   #:format-human-speed
+   #:format-human-time
+   #:format-human-size
+   #:register-progress-hook
+   #:unregister-progress-hook
+   #:make-logging-progress-callback
+   #:notify-download-progress
+   #:notify-upload-progress
+   #:*progress-callbacks*
+   #:*progress-callback-interval*
+   #:*progress-history*
+   #:*max-progress-history*
+
    ;; Drafts and Scheduled Messages
    #:draft-message
    #:save-draft
