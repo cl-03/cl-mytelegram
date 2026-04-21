@@ -1136,6 +1136,56 @@
    #:*progress-history*
    #:*max-progress-history*
 
+   ;; File Transfer Stream (v0.39.0)
+   #:transfer-stream
+   #:transfer-stream-id
+   #:transfer-stream-type
+   #:transfer-stream-file-id
+   #:transfer-stream-file-path
+   #:transfer-stream-file-size
+   #:transfer-stream-chunk-size
+   #:transfer-stream-position
+   #:transfer-stream-completed-p
+   #:transfer-stream-cancelled-p
+   #:transfer-stream-error
+   #:transfer-stream-started-at
+   #:transfer-stream-completed-at
+   #:transfer-stream-data
+   #:download-stream
+   #:download-stream-output
+   #:download-stream-dc-id
+   #:download-stream-access-hash
+   #:download-stream-buffer
+   #:upload-stream
+   #:upload-stream-input
+   #:upload-stream-file-name
+   #:upload-stream-mime-type
+   #:upload-stream-parts
+   #:upload-stream-total-parts
+   #:upload-stream-uploaded-parts
+   #:upload-stream-session-id
+   #:create-download-stream
+   #:read-download-chunk
+   #:close-download-stream
+   #:create-upload-stream
+   #:read-upload-chunk
+   #:upload-chunk
+   #:finalize-upload
+   #:close-upload-stream
+   #:cancel-transfer-stream
+   #:pause-transfer-stream
+   #:resume-transfer-stream
+   #:stream-transfer-status
+   #:get-stream
+   #:list-active-streams
+   #:cleanup-completed-streams
+   #:close-transfer-stream
+   #:with-download-stream
+   #:with-upload-stream
+   #:*active-streams*
+   #:*stream-chunk-size*
+   #:*max-stream-buffer-size*
+
    ;; Drafts and Scheduled Messages
    #:draft-message
    #:save-draft
