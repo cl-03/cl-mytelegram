@@ -1229,6 +1229,36 @@
    #:*supported-currencies*
    #:*max-tip-presets*
 
+   ;; Payment Enhanced (v0.38.0)
+   #:payment-form
+   #:payment-form-id
+   #:payment-form-invoice
+   #:payment-form-provider-id
+   #:payment-form-url
+   #:payment-form-native-provider
+   #:payment-form-can-save-credentials
+   #:payment-form-need-user-info
+   #:payment-form-need-shipping
+   #:order-info
+   #:order-info-name
+   #:order-info-phone
+   #:order-info-email
+   #:order-info-shipping
+   #:get-payment-form
+   #:clear-payment-form-cache
+   #:send-payment-form
+   #:get-invoice
+   #:get-shipping-query
+   #:get-pre-checkout-query
+   #:refund-payment
+   #:verify-payment
+   #:make-shipping-address
+   #:parse-shipping-address
+   #:make-order-info
+   #:*payment-forms-cache*
+   #:*payment-forms-cache-time*
+   #:*payment-forms-cache-ttl*
+
    ;; Business Features (v0.20.0)
    #:business-connection
    #:business-location
