@@ -4,9 +4,48 @@ A pure Common Lisp Telegram client implementation using MTProto 2.0 protocol.
 
 ## Status
 
-**Release v0.35.0** - Bot API 9.6 Stars Payment + Managed Bots Token Management.
+**Release v0.36.0** - Inline Mode + Stickers + Payment API Enhancements.
 
-**Previous: v0.34.0** - Bot API 9.9 Framework, Payment/Inline/Stickers Enhanced.
+**Previous: v0.35.0** - Bot API 9.6 Stars Payment + Managed Bots Token Management.
+
+---
+
+## What's New in v0.36.0
+
+### Inline Mode Enhanced
+
+Complete inline message operation support:
+
+- **Edit Inline Message** - Edit text and markup of inline messages
+- **Delete Inline Message** - Delete inline messages
+- **Send Inline Result** - Send inline results to chats
+- **Answer Web App Query** - Answer web app inline queries
+
+### Stickers API Completion
+
+Full sticker management functionality:
+
+- **Get Forum Topic Icons** - Retrieve available forum topic icon stickers
+- **Set Sticker Position** - Reposition stickers in sets
+- **Delete Sticker** - Remove stickers from sets
+- **Set Sticker Emoji List** - Update associated emojis
+- **Set Thumbnails** - Update sticker set thumbnails
+
+### Payment API Enhancement
+
+Complete paid media management:
+
+- **Get Paid Media** - Retrieve paid media by ID
+- **List Paid Media** - Browse all paid media with pagination
+- **Delete Paid Media** - Remove paid media posts
+- **Update Paid Media** - Modify price and description
+
+### Code Statistics v0.36.0
+
+- **Modified Files**: 6 (+560 lines)
+- **New Tests**: 22+ across 3 test suites
+- **New API Functions**: 9+
+- **Test Coverage**: 91%+ overall
 
 ---
 
