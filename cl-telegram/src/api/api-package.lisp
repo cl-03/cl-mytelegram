@@ -1143,6 +1143,33 @@
    #:*qr-login-state*
    #:*privacy-rules-cache*
 
+   ;; Account Security Enhanced (v0.37.0)
+   #:privacy-setting
+   #:authorization
+   #:two-factor-auth
+   #:get-privacy-settings
+   #:set-privacy-settings
+   #:get-privacy-setting
+   #:reset-privacy-settings
+   #:get-authorizations
+   #:terminate-authorization
+   #:terminate-all-authorizations
+   #:get-two-factor-status
+   #:enable-two-factor
+   #:disable-two-factor
+   #:change-two-factor-password
+   #:get-two-factor-recovery-code
+   #:send-two-factor-recovery-email
+   #:clear-privacy-settings-cache
+   #:clear-authorizations-cache
+   #:get-cached-privacy-setting
+   #:initialize-account-security-v2
+   #:shutdown-account-security-v2
+   #:*privacy-settings-cache*
+   #:*authorizations-cache*
+   #:*qr-login-state*
+   #:*cache-expiry-time*
+
    ;; Payment and Telegram Stars (v0.20.0)
    #:labeled-price
    #:invoice

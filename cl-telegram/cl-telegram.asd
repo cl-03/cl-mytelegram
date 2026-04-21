@@ -127,7 +127,8 @@
                              (:file "bot-api-9-5")
                              (:file "bot-api-9-8")
                              (:file "telegram-business")
-                             (:file "scheduled-messages")))
+                             (:file "scheduled-messages")
+                             (:file "account-security-v2")))
                ;; UI layer
                (:module "ui"
                 :serial t
@@ -228,7 +229,8 @@
                (:file "chat-backgrounds-tests")
                (:file "bot-api-9-6-stars-tests")
                (:file "bot-api-9-6-managed-tests")
-               (:file "scheduled-messages-tests")))
+               (:file "scheduled-messages-tests")
+               (:file "account-security-v2-tests")))
 
 ;; Documentation system
 (asdf:defsystem #:cl-telegram/docs
