@@ -730,6 +730,41 @@
    #:set-custom-emoji-sticker-set-thumbnail
    #:get-custom-emoji-stickers
 
+   ;; Stickers Enhanced (v0.38.0)
+   #:suggest-sticker-set-short-name
+   #:check-sticker-set-short-name
+   #:save-gif
+   #:get-saved-gifs
+   #:search-gif
+   #:clear-saved-gifs-cache
+   #:get-available-effects
+   #:chat-effect
+   #:chat-effect-id
+   #:chat-effect-type
+   #:chat-effect-title
+   #:chat-effect-thumbnail
+   #:chat-effect-animation
+   #:get-recent-emoji-reactions
+   #:clear-recent-emoji-reactions
+   #:add-recent-emoji-reaction
+   #:get-chat-themes
+   #:chat-theme
+   #:chat-theme-id
+   #:chat-theme-title
+   #:chat-theme-thumbnail
+   #:chat-theme-colors
+   #:chat-theme-is-dark
+   #:save-wallpaper
+   #:install-wallpaper
+   #:reset-wallpapers
+   #:convert-sticker-set
+   #:validate-sticker-file
+   #:*saved-gifs-cache*
+   #:*saved-gifs-cache-time*
+   #:*saved-gifs-cache-ttl*
+   #:*recent-emoji-reactions*
+   #:*recent-emoji-reactions-cache-time*
+
    ;; Channels & Broadcast
    #:channel
    #:channel-post
