@@ -1005,6 +1005,11 @@
    #:set-my-name
    #:get-my-name
 
+   ;; Inline Mode Enhanced (v0.35.0)
+   #:edit-inline-message
+   #:delete-inline-message
+   #:send-inline-result
+
    ;; File Management
    #:file-location
    #:uploaded-file

@@ -549,6 +549,214 @@
                  :selective selective
                  :placeholder placeholder))
 
+;;; ============================================================================
+;;; Section: Enhanced Inline Query Functions
+;;; ============================================================================
+
+(defun answer-inline-query (query-id results &key (cache-time 300) (is-personal nil)
+                            (next-offset nil) (switch-pm-text nil) (switch-pm-parameter nil)
+                            (button-text nil) (button-start-param nil))
+  "Answer inline query with results.
+
+   Args:
+     query-id: Inline query ID
+     results: List of inline-result objects
+     cache-time: How long results are cached (seconds)
+     is-personal: Whether results are for this user only
+     next-offset: Offset for next results
+     switch-pm-text: Text to show for switch to PM button (deprecated)
+     switch-pm-parameter: Parameter for switch button (deprecated)
+     button-text: Button text (Bot API 9.6+)
+     button-start-param: Button start parameter (Bot API 9.6+)
+
+   Returns:
+     T on success
+
+   Example:
+     (answer-inline-query \"query_123\" results :cache-time 60)
+     (answer-inline-query \"query_456\" results :button-text \"Open Bot\" :button-start-param \"start\")"
+  (handler-case
+      (let* ((connection (get-connection))
+             (tl-results (mapcar (lambda (result)
+                                   (make-tl-object 'inputBotInlineResult
+                                                   :id (inline-result-id result)
+                                                   :type (inline-result-type result)
+                                                   :title (or (inline-result-title result) "")
+                                                   :description (or (inline-result-description result) "")
+                                                   :message (inline-result-message-text result)))
+                                 results))
+             (request (make-tl-object 'messages.setInlineBotResults
+                                      :query-id query-id
+                                      :results tl-results
+                                      :cache-time cache-time
+                                      :private is-personal
+                                      :next-offset (or next-offset "")
+                                      :switch-pm (when switch-pm-text
+                                                   (make-tl-object 'botInlinePM
+                                                                   :text switch-pm-text
+                                                                   :start-param (or switch-pm-parameter "")))
+                                      :button (when button-text
+                                                (make-tl-object 'botInlineButton
+                                                                :text button-text
+                                                                :start-param (or button-start-param ""))))))
+        (rpc-handler-case (rpc-call connection request :timeout 10000)
+          (inline-bot-error (e)
+            (log-error "Inline bot answer failed: ~a" e)
+            nil)
+          (timeout-error (e)
+            (log-error "Inline bot answer timeout: ~a" e)
+            nil)
+          (:no-error (result)
+            (declare (ignore result))
+            t)))
+    (t (e)
+      (log-error "Unexpected error in answer-inline-query: ~a" e)
+      nil)))
+
+(defun edit-inline-message (inline-message-id text &key (reply-markup nil) (parse-mode nil) (entities nil))
+  "Edit text of inline message.
+
+   Args:
+     inline-message-id: Inline message ID to edit
+     text: New text content
+     reply-markup: New inline keyboard (optional)
+     parse-mode: Parse mode (HTML, Markdown, etc.)
+     entities: Message entities for formatting
+
+   Returns:
+     T on success
+
+   Example:
+     (edit-inline-message \"inline_msg_123\" \"Updated text\")
+     (edit-inline-message \"inline_msg_456\" \"<b>Bold</b> text\" :parse-mode \"HTML\")"
+  (handler-case
+      (let* ((connection (get-connection))
+             (request (make-tl-object 'messages.editInlineBotMessage
+                                      :peer (make-tl-object 'inputPeerEmpty)
+                                      :id inline-message-id
+                                      :message text
+                                      :reply-markup reply-markup
+                                      :entities (or entities nil))))
+        (rpc-handler-case (rpc-call connection request :timeout 10000)
+          (inline-bot-error (e)
+            (log-error "Edit inline message failed: ~a" e)
+            nil)
+          (timeout-error (e)
+            (log-error "Edit inline message timeout: ~a" e)
+            nil)
+          (:no-error (result)
+            (declare (ignore result))
+            t)))
+    (t (e)
+      (log-error "Unexpected error in edit-inline-message: ~a" e)
+      nil)))
+
+(defun delete-inline-message (chat-id message-id)
+  "Delete inline message.
+
+   Args:
+     chat-id: Chat ID where message was sent
+     message-id: Message ID to delete
+
+   Returns:
+     T on success
+
+   Example:
+     (delete-inline-message 123456 789)"
+  (handler-case
+      (let* ((connection (get-connection))
+             (request (make-tl-object 'messages.deleteMessages
+                                      :peer (make-tl-object 'inputPeerUser :user-id chat-id)
+                                      :id (list message-id))))
+        (rpc-handler-case (rpc-call connection request :timeout 10000)
+          (inline-bot-error (e)
+            (log-error "Delete inline message failed: ~a" e)
+            nil)
+          (timeout-error (e)
+            (log-error "Delete inline message timeout: ~a" e)
+            nil)
+          (:no-error (result)
+            (declare (ignore result))
+            t)))
+    (t (e)
+      (log-error "Unexpected error in delete-inline-message: ~a" e)
+      nil)))
+
+(defun answer-web-app-query (query-id results &key (button-text nil))
+  "Answer web app inline query.
+
+   Args:
+     query-id: Web app query ID
+     results: List of inline-result objects
+     button-text: Optional button text
+
+   Returns:
+     T on success
+
+   Example:
+     (answer-web-app-query \"webapp_123\" results :button-text \"Send Result\")"
+  (handler-case
+      (let* ((connection (get-connection))
+             (tl-results (mapcar (lambda (result)
+                                   (make-tl-object 'inputBotWebViewResult
+                                                   :id (inline-result-id result)
+                                                   :type (inline-result-type result)
+                                                   :title (or (inline-result-title result) "")
+                                                   :description (or (inline-result-description result) "")))
+                                 results)))
+        (declare (ignore button-text)) ; For future use
+        (rpc-handler-case (rpc-call connection
+                                    (make-tl-object 'messages.sendWebViewResultMessage
+                                                    :query-id query-id
+                                                    :result tl-results)
+                                    :timeout 10000)
+          (inline-bot-error (e)
+            (log-error "Answer web app query failed: ~a" e)
+            nil)
+          (timeout-error (e)
+            (log-error "Answer web app query timeout: ~a" e)
+            nil)
+          (:no-error (result)
+            (declare (ignore result))
+            t)))
+    (t (e)
+      (log-error "Unexpected error in answer-web-app-query: ~a" e)
+      nil)))
+
+(defun send-inline-result (chat-id result-id &key (disable-notification nil) (reply-to nil))
+  "Send inline result to chat.
+
+   Args:
+     chat-id: Target chat ID
+     result-id: Inline result ID
+     disable-notification: Send silently if T
+     reply-to: Message ID to reply to
+
+   Returns:
+     Message object on success
+
+   Example:
+     (send-inline-result 123456 \"result_abc\")"
+  (handler-case
+      (let* ((connection (get-connection))
+             (request (make-tl-object 'messages.sendInlineBotResultMessage
+                                      :peer (make-tl-object 'inputPeerUser :user-id chat-id)
+                                      :query-id result-id
+                                      :silent disable-notification
+                                      :reply-to-msg-id (or reply-to 0))))
+        (rpc-handler-case (rpc-call connection request :timeout 10000)
+          (inline-bot-error (e)
+            (log-error "Send inline result failed: ~a" e)
+            nil)
+          (timeout-error (e)
+            (log-error "Send inline result timeout: ~a" e)
+            nil)
+          (:no-error (result)
+            result)))
+    (t (e)
+      (log-error "Unexpected error in send-inline-result: ~a" e)
+      nil)))
+
 ;;; ### Web App Integration
 
 (defclass web-app-info ()

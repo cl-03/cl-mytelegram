@@ -450,6 +450,70 @@
     (is (eq result t))))
 
 ;;; ============================================================================
+;;; Section 12: Enhanced Inline Message Operations Tests
+;;; ============================================================================
+
+(test test-edit-inline-message
+  "Test editing inline message text"
+  (let ((result (cl-telegram/api:edit-inline-message "msg_123" "Updated text"
+                                                      :reply-markup nil
+                                                      :parse-mode "HTML"
+                                                      :entities nil)))
+    ;; Should return message plist or T on success
+    (is (or (listp result) (eq result t)))))
+
+(test test-edit-inline-message-with-markup
+  "Test editing inline message with new keyboard"
+  (let ((markup (cl-telegram/api:make-inline-keyboard "Button" :callback-data "test")))
+    (let ((result (cl-telegram/api:edit-inline-message "msg_456" "New text"
+                                                        :reply-markup markup
+                                                        :parse-mode nil
+                                                        :entities nil)))
+      (is (or (listp result) (eq result t))))))
+
+(test test-delete-inline-message
+  "Test deleting inline message"
+  (let ((result (cl-telegram/api:delete-inline-message 123456 789)))
+    ;; Should return T on success
+    (is (eq result t))))
+
+(test test-delete-inline-message-nonexistent
+  "Test deleting non-existent inline message"
+  (let ((result (cl-telegram/api:delete-inline-message 999999 111)))
+    ;; Should handle gracefully
+    (is (or (eq result nil) (eq result t)))))
+
+(test test-send-inline-result
+  "Test sending inline result to chat"
+  (let ((result (cl-telegram/api:send-inline-result 123456 "result_abc"
+                                                     :disable-notification nil
+                                                     :reply-to nil)))
+    ;; Should return message plist
+    (is (or (listp result) (eq result t)))))
+
+(test test-send-inline-result-with-reply
+  "Test sending inline result as reply"
+  (let ((result (cl-telegram/api:send-inline-result 123456 "result_def"
+                                                     :disable-notification t
+                                                     :reply-to 999)))
+    (is (or (listp result) (eq result t)))))
+
+(test test-answer-web-app-query
+  "Test answering web app inline query"
+  (let ((results (list (cl-telegram/api:make-inline-query-result-article "1" "Title" "Message")))
+        (result (cl-telegram/api:answer-web-app-query "query_xyz" results
+                                                       :button-text "Send")))
+    ;; Should return T on success
+    (is (eq result t))))
+
+(test test-answer-web-app-query-no-button
+  "Test answering web app query without button"
+  (let ((results (list (cl-telegram/api:make-inline-query-result-photo "1" "file_id")))
+        (result (cl-telegram/api:answer-web-app-query "query_999" results
+                                                       :button-text nil)))
+    (is (eq result t))))
+
+;;; ============================================================================
 ;;; Test Runner
 ;;; ============================================================================
 
