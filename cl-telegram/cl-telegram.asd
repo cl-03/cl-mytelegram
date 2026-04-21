@@ -5,7 +5,7 @@
   :description "A pure Common Lisp Telegram client implementation using MTProto 2.0"
   :author "Your Name <your.email@example.com>"
   :license "Boost Software License 1.0"
-  :version "0.26.0"
+  :version "0.35.0"
   :depends-on (:cl-async
                :usocket
                :dexador
@@ -222,7 +222,9 @@
                (:file "chat-folders-tests")
                (:file "notifications-v0.32-tests")
                (:file "telegram-business-tests")
-               (:file "chat-backgrounds-tests")))
+               (:file "chat-backgrounds-tests")
+               (:file "bot-api-9-6-stars-tests")
+               (:file "bot-api-9-6-managed-tests")))
 
 ;; Documentation system
 (asdf:defsystem #:cl-telegram/docs

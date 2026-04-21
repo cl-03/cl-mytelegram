@@ -2411,6 +2411,69 @@
    #:datetime-entity-id
    #:datetime-entity-datetime
 
+   ;; Bot API 9.6 Stars (v0.35.0)
+   #:get-business-account-star-balance
+   #:get-star-transactions
+   #:refund-star-payment
+   #:convert-star-gift
+   #:send-paid-media
+   #:get-paid-media
+   #:list-paid-media
+   #:delete-paid-media
+   #:update-paid-media
+   #:clear-star-cache
+   #:clear-paid-media-cache
+   #:get-star-balance-cached
+   #:get-paid-media-cached
+   #:paid-media
+   #:paid-media-id
+   #:paid-media-type
+   #:paid-media-price
+   #:paid-media-description
+   #:paid-media-preview-url
+   #:paid-media-duration
+   #:paid-media-width
+   #:paid-media-height
+   #:paid-media-created-at
+   #:paid-media-purchase-count
+   #:register-bot-api-9-6-stars-feature
+   #:check-bot-api-9-6-stars-feature
+   #:get-bot-api-9-6-stars-status
+
+   ;; Bot API 9.6 Managed Bots (v0.35.0)
+   #:create-managed-bot-token
+   #:replace-managed-bot-token
+   #:get-managed-bot-token-info
+   #:revoke-managed-bot-token
+   #:list-managed-bot-tokens
+   #:set-managed-bot-permissions
+   #:get-managed-bot-permissions
+   #:has-managed-bot-permission-p
+   #:validate-managed-bot-token
+   #:get-managed-bot-token-history
+   #:clear-managed-bot-token
+   #:clear-managed-bot-tokens
+   #:count-managed-bot-tokens
+   #:managed-bot-token
+   #:managed-bot-token-id
+   #:managed-bot-token-value
+   #:managed-bot-token-bot-id
+   #:managed-bot-token-created-at
+   #:managed-bot-token-expires-at
+   #:managed-bot-token-is-active
+   #:managed-bot-token-permissions
+   #:managed-bot-token-last-used-at
+   #:managed-bot-token-created-by
+   #:managed-bot-token-description
+   #:register-bot-api-9-6-managed-feature
+   #:check-bot-api-9-6-managed-feature
+   #:get-bot-api-9-6-managed-status
+   #:*managed-bot-tokens*
+   #:*managed-bot-token-history*
+   #:*star-balances*
+   #:*star-transactions-cache*
+   #:*paid-media-cache*
+
    ;; Chat Folders (v0.32.0)
    #:create-chat-folder
    #:edit-chat-folder
