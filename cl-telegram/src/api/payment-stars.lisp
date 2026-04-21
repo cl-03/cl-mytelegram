@@ -407,6 +407,73 @@
       (log:error "Get paid media post failed: ~A" e)
       nil)))
 
+(defun get-paid-media (media-id)
+  "Get paid media information by ID.
+
+   Args:
+     media-id: Paid media identifier
+
+   Returns:
+     Paid-media instance or NIL
+
+   Example:
+     (get-paid-media \"media_123\")"
+  (declare (ignore media-id))
+  ;; Placeholder - implement based on your storage mechanism
+  (log:info "Get paid media: ~A" media-id)
+  nil)
+
+(defun list-paid-media (&key (limit 50) (offset 0))
+  "List all paid media posts.
+
+   Args:
+     limit: Maximum number of results (default: 50)
+     offset: Offset for pagination (default: 0)
+
+   Returns:
+     List of paid-media plists
+
+   Example:
+     (list-paid-media :limit 20)"
+  (declare (ignore limit offset))
+  ;; Placeholder - implement based on your storage mechanism
+  (log:info "List paid media (limit=~D, offset=~D)" limit offset)
+  nil)
+
+(defun delete-paid-media (media-id)
+  "Delete a paid media post.
+
+   Args:
+     media-id: Paid media identifier
+
+   Returns:
+     T on success, NIL on failure
+
+   Example:
+     (delete-paid-media \"media_123\")"
+  (declare (ignore media-id))
+  ;; Placeholder - implement based on your storage mechanism
+  (log:info "Delete paid media: ~A" media-id)
+  nil)
+
+(defun update-paid-media (media-id &key (star-amount nil) (description nil))
+  "Update paid media information.
+
+   Args:
+     media-id: Paid media identifier
+     star-amount: New star amount (optional)
+     description: New description (optional)
+
+   Returns:
+     T on success, NIL on failure
+
+   Example:
+     (update-paid-media \"media_123\" :star-amount 100)"
+  (declare (ignore media-id star-amount description))
+  ;; Placeholder - implement based on your storage mechanism
+  (log:info "Update paid media: ~A (star=~A, desc=~A)" media-id star-amount description)
+  nil)
+
 ;;; ============================================================================
 ;;; Section 5: Star Giveaway
 ;;; ============================================================================

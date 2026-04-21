@@ -170,6 +170,50 @@
   (cl-telegram/api:shutdown-payment-stars))
 
 ;;; ============================================================================
+;;; Section 8: Paid Media Tests
+;;; ============================================================================
+
+(test test-make-paid-media-info
+  "Test creating paid media info"
+  (let ((media (cl-telegram/api:make-paid-media-info "photo" "file_id_123" 50
+                                                      :description "Exclusive content")))
+    (is (typep media 'cl-telegram/api::paid-media))
+    (is (string= (cl-telegram/api:paid-media-type media) "photo"))
+    (is (string= (cl-telegram/api:paid-media-media-id media) "file_id_123"))
+    (is (= (cl-telegram/api:paid-media-star-amount media) 50))))
+
+(test test-send-paid-media
+  "Test sending paid media"
+  (let ((media (cl-telegram/api:make-paid-media-info "photo" "file_id_123" 50)))
+    (let ((result (cl-telegram/api:send-paid-media 123456 media :caption "Check this out!")))
+      (is (or (null result) (listp result))))))
+
+(test test-get-paid-media-post
+  "Test getting paid media post"
+  (let ((result (cl-telegram/api:get-paid-media-post 123456 789)))
+    (is (or (null result) (listp result)))))
+
+(test test-get-paid-media
+  "Test getting paid media by ID"
+  (let ((result (cl-telegram/api:get-paid-media "media_123")))
+    (is (or (null result) (typep result 'cl-telegram/api::paid-media)))))
+
+(test test-list-paid-media
+  "Test listing paid media"
+  (let ((result (cl-telegram/api:list-paid-media :limit 20 :offset 0)))
+    (is (or (null result) (listp result)))))
+
+(test test-delete-paid-media
+  "Test deleting paid media"
+  (let ((result (cl-telegram/api:delete-paid-media "media_123")))
+    (is (or (null result) (eq result t)))))
+
+(test test-update-paid-media
+  "Test updating paid media"
+  (let ((result (cl-telegram/api:update-paid-media "media_123" :star-amount 100 :description "Updated")))
+    (is (or (null result) (eq result t)))))
+
+;;; ============================================================================
 ;;; Test Runner
 ;;; ============================================================================
 

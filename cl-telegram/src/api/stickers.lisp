@@ -884,3 +884,35 @@
     (error (e)
       (log-message :error "Error getting custom emoji stickers: ~A" (princ-to-string e))
       nil)))
+
+(defun get-forum-topic-icon-stickers ()
+  "Get custom emoji stickers that can be used as forum topic icons.
+
+   Returns:
+     List of sticker objects on success, NIL on failure
+
+   Example:
+     (get-forum-topic-icon-stickers)"
+  (handler-case
+      (let* ((connection (get-current-connection))
+             (params nil))
+        (let ((result (make-api-call connection "getForumTopicIconStickers" params)))
+          (if result
+              (let ((stickers (getf result :stickers)))
+                (mapcar (lambda (sticker-data)
+                          (make-instance 'sticker
+                                         :file-id (getf sticker-data :file-id)
+                                         :file-unique-id (getf sticker-data :file-unique-id)
+                                         :width (getf sticker-data :width)
+                                         :height (getf sticker-data :height)
+                                         :is-animated (getf sticker-data :is-animated)
+                                         :is-video (getf sticker-data :is-video)
+                                         :emoji (getf sticker-data :emoji)
+                                         :set-name (getf sticker-data :set-name)))
+                        stickers))
+              nil)))
+    (error (e)
+      (log-message :error "Error getting forum topic icon stickers: ~A" (princ-to-string e))
+      nil)))
+
+;;; End of stickers.lisp

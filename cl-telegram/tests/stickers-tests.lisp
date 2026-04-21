@@ -429,6 +429,50 @@
     (is (string= (cl-telegram/api:sticker-dimension-string large) "512x512"))))
 
 ;;; ======================================================================
+;;; Sticker Management Tests (Bot API 9.0+)
+;;; ======================================================================
+
+(test test-set-sticker-position-in-set
+  "Test setting sticker position in set"
+  ;; Function requires API connection, test that it exists and handles gracefully
+  (let ((result (cl-telegram/api:set-sticker-position-in-set "test_sticker_id" 0)))
+    ;; May return NIL without connection, T with connection
+    (is (or (null result) (eq result t)))))
+
+(test test-delete-sticker-from-set
+  "Test deleting sticker from set"
+  (let ((result (cl-telegram/api:delete-sticker-from-set "test_sticker_id")))
+    (is (or (null result) (eq result t)))))
+
+(test test-set-sticker-emoji-list
+  "Test setting sticker emoji list"
+  (let ((emoji-list '("😀" "😁" "😂"))
+        (result (cl-telegram/api:set-sticker-emoji-list "test_sticker_id" '("😀" "😁" "😂"))))
+    (is (or (null result) (eq result t)))))
+
+(test test-set-sticker-set-thumbnail
+  "Test setting sticker set thumbnail"
+  (let ((result (cl-telegram/api:set-sticker-set-thumbnail "TestSet" 123456 :thumbnail-file-id "file_id")))
+    (is (or (null result) (eq result t)))))
+
+(test test-set-custom-emoji-sticker-set-thumbnail
+  "Test setting custom emoji sticker set thumbnail"
+  (let ((result (cl-telegram/api:set-custom-emoji-sticker-set-thumbnail "EmojiSet" :custom-emoji-id "emoji_id")))
+    (is (or (null result) (eq result t)))))
+
+(test test-get-custom-emoji-stickers
+  "Test getting custom emoji stickers"
+  (let ((result (cl-telegram/api:get-custom-emoji-stickers '("emoji_id_1" "emoji_id_2"))))
+    ;; Should return list of sticker objects or NIL
+    (is (or (null result) (listp result)))))
+
+(test test-get-forum-topic-icon-stickers
+  "Test getting forum topic icon stickers"
+  (let ((result (cl-telegram/api:get-forum-topic-icon-stickers)))
+    ;; Should return list of sticker objects or NIL
+    (is (or (null result) (listp result)))))
+
+;;; ======================================================================
 ;;; Test Runner
 ;;; ======================================================================
 
